@@ -16,7 +16,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=[
-            "python-dotenv>=0.17.0",
+            "python-dotenv",
             "requests"
         ],
     entry_points={
