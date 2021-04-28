@@ -1,13 +1,11 @@
+**nicehash-python**
+fork of nicehash/rest-clients-demo with updated python client
+
 # rest-clients-demo
 
-### Examples by language
+### Source
 
 - [python](https://github.com/nicehash/rest-clients-demo/blob/master/python/nicehash.py)
-- [bash](https://github.com/nicehash/rest-clients-demo/tree/master/bash)
-- [c#](https://github.com/nicehash/rest-clients-demo/blob/master/c%23/connect/connect/Hpo.cs)
-- [java](https://github.com/nicehash/rest-clients-demo/blob/master/java/src/main/java/Hpo.java)
-- [javascript](https://github.com/nicehash/rest-clients-demo/blob/master/javascript/hashpower.js)
-- [php](https://github.com/nicehash/rest-clients-demo/wiki/php-demo)
 
 ### TEST environment
 

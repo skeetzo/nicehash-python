@@ -1,2 +1,6 @@
 .idea
 javascript/node_modules
+.env
+bin/
+notes/
+venv/

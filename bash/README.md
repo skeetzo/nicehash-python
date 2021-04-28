@@ -2,7 +2,7 @@
 
 Get python client
 	
-	wget https://raw.githubusercontent.com/nicehash/rest-clients-demo/master/python/nicehash.py
+	wget https://raw.githubusercontent.com/skeetzo/nicehash-python/master/python/nicehash.py
 	
 Install dependencies
 	
