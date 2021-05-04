@@ -16,9 +16,13 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=[
-            "python-dotenv",
             "requests"
         ],
+    extras_require={
+        'dev': [
+            'dotenv-python'
+        ]
+    },
     entry_points={
         'console_scripts' : [
             'nicehash = python.nicehash:main'

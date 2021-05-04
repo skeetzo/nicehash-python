@@ -1302,8 +1302,7 @@ class websockets_api(public_api):
         }
         return self.request('GET', '', '', data)
 
-
-if __name__ == "__main__":
+def main():
     parser = optparse.OptionParser()
 
     parser.add_option('-b', '--base_url', dest="base", help="Api base url", default="https://api2.nicehash.com")
@@ -1317,17 +1316,20 @@ if __name__ == "__main__":
 
     options, args = parser.parse_args()
 
-    private_api = private_api(options.base, options.org, options.key, options.secret)
+    _private_api = private_api(options.base, options.org, options.key, options.secret)
 
     query = ''
     if options.params is not None:
         query = options.params
 
     try:
-        response = private_api.request(options.method, options.path, params, options.body)
+        response = _private_api.request(options.method, options.path, query, options.body)
     except Exception as ex:
         print("Unexpected error:", ex)
         exit(1)
 
     print(response)
     exit(0)
+
+if __name__ == "__main__":
+    main()

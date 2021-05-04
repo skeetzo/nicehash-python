@@ -4,3 +4,4 @@ javascript/node_modules
 bin/
 notes/
 venv/
+bash/run-test.sh
