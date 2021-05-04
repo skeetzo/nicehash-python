@@ -51,6 +51,12 @@ class public_api:
         if self.verbose:
             print(method, url)
 
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        self.session.headers = headers
+
         if body:
             body_json = json.dumps(body)
             response = self.session.request(method, url, data=body_json)
@@ -149,10 +155,11 @@ class public_api:
     # limit   number  Limit in market unit
     def fixed_price_request(self, algorithm, market, limit):
         request_data = {
-            'algorithm': str(algorithm),
-            'market': str(market),
+            'algorithm': str(algorithm).upper(),
+            'market': str(market).upper(),
             'limit': float(limit)
         }
+        print(request_data)
         return self.request('POST', '/main/api/v2/hashpower/orders/fixedPrice', '', request_data)
         # {
         #     fixedMax : number - Maximal allowed speed limit for fixed order [TH/Sol/G]/s

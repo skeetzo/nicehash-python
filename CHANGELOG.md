@@ -4,3 +4,5 @@
 	- test_bot.py -> updated original
 	**4/25**
 	- python unittests: test_nicehash_*public, private, websockets.py
+	**0.0.1 : 5/3/2021**
+	- package fix

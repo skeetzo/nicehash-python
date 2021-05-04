@@ -8,9 +8,13 @@ from python import nicehash
 
 ADDRESS = os.environ.get("TEST_ADDRESS")
 HOST = os.environ.get("TEST_HOST")
+# HOST = os.environ.get("HOST")
 ORGANIZATION_ID = os.environ.get("TEST_ORGANIZATION_ID")
+# ORGANIZATION_ID = os.environ.get("ORGANIZATION_ID")
 KEY = os.environ.get("TEST_KEY")
+# KEY = os.environ.get("KEY")
 SECRET = os.environ.get("TEST_SECRET")
+# SECRET = os.environ.get("SECRET")
 #
 ACTIVITY_TYPES = nicehash.ACTIVITY_TYPES[0]
 ALGORITHM = nicehash.ALGORITHMS[0]
@@ -477,6 +481,7 @@ class TestNiceHashPublic(unittest.TestCase):
 					self.assert_is_number(price_request["fixedPrice"])
 				except Exception as e:
 					print(e)
+					raise Exception
 			if TEST_LISTS:
 				for market in nicehash.MARKETS:
 					test2(market)
@@ -491,29 +496,6 @@ class TestNiceHashPublic(unittest.TestCase):
 	# 	fixedMax : number - Maximal allowed speed limit for fixed order [TH/Sol/G]/s
 	# 	fixedPrice : number - Current price for fixed order in BTC/factor[TH/Sol/G]/day
 	# }
-
-
-	# {
-	# 	miningAlgorithms : [
-	# 		{
-	# 			down_step : number - Maximal allowed down step for price
-	# 			min_diff_working : number - Minimal working difficulty
-	# 			min_limit : number - Minimal value for speed limit
-	# 			max_limit : number - Maximal value for speed limit
-	# 			speed_text : string - Speed unit
-	# 			min_diff_initial : number - Minimal initial difficulty
-	# 			name : string - Algorithm name
-	# 			algo : integer - Algorithm code
-	# 			multi : number - Unit factor
-	# 			min_price : number - Minimal value for price in BTC/factor[TH/Sol/G]/day
-	# 			max_price : number - Maximal value for price in BTC/factor[TH/Sol/G]/day
-	# 			min_amount : number - Minimal allowed amount
-	# 		}
-	# 	]
-	# }
-
-
-
 
 	# /main/api/v2/hashpower/orders/summaries
 
@@ -848,7 +830,6 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo)
 		elif len(current_global_stats["algos"]) > 0:
 			test(current_global_stats["algos"][0])
-
 	# {
 	# 	algos : [
 	# 		{
