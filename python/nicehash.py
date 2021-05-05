@@ -18,9 +18,11 @@ for a in ALGORITHMS:
     ALGORITHM_CODES.append(i)
     i+=1
 MARKETS = [ "EU", "USA", "EU_N", "USA_E" ]
+MARKETS_LONG = [ "EUROPE", "USA", "EUROPE_NORTH", "USA_EAST" ]
 OPS = [ "GT", "GE", "LT", "LE" ]
 # ORDER_RELATIONS = [ "GT", "GE", "LT", "LE" ]
-ORDER_TYPES = [ "MARKET", "LIMIT" ]
+EXCHANGE_ORDER_TYPES = [ "MARKET", "LIMIT" ]
+HASHPOWER_ORDER_TYPES = [ "STANDARD", "FIXED" ]
 RIG_ACTIONS = [ "START", "STOP", "POWER_MODE" ]
 SORT_PARAMETERS = [ "RIG_NAME", "TIME", "MARKET", "ALGORITHM", "UNPAID_AMOUNT", "DIFFICULTY", "SPEED_ACCEPTED", "SPEED_REJECTED", "PROFITABILITY" ]
 SORT_DIRECTIONS = [ "ASC", "DESC" ]
@@ -32,6 +34,10 @@ WALLET_TYPES = [ "BITGO", "BLOCKCHAIN", "LIGHTNING", "MULTISIG" ]
 
 # Websockets OPTIONS
 RESOLUTIONS = [ 1, 60, 1440 ]
+
+# cache
+CACHE = dict({})
+TIMEOUT = 1000 * 60 * 3 # 3 minutes
 
 class public_api:
 
@@ -46,10 +52,18 @@ class public_api:
     def request(self, method, path, query, body):
         url = self.host + path
         if query:
+            # TODO
+            # why doesn't this work here instead of forcing the check for empty [] at every function???
+            # query = query.replace("[]", "") # clean arrays into empty strings
             url += '?' + query
 
         if self.verbose:
+            print()
             print(method, url)
+            if query != "":
+                print('query: '+str(query))
+            if body:
+                print('body: '+str(body))
 
         headers = {
             'Content-Type': 'application/json'
@@ -75,15 +89,30 @@ class public_api:
         now_ec_since_epoch = mktime(now.timetuple()) + now.microsecond / 1000000.0
         return int(now_ec_since_epoch * 1000)
 
-    def algo_settings_from_response(self, algorithm, algo_response):
+    # @staticmethod
+    # def algo_to_number(algorithm):
+    #     if str(algorithm) in ALGORITHMS:
+    #         return ALGORITHMS.index(str(algorithm))
+    #     return None
+
+    # @staticmethod
+    # def algo_to_name(algo_number):
+    #     if int(algo_number) < len(ALGORITHMS):
+    #         return ALGORITHMS[int(algo_number)]
+    #     return None
+
+    @staticmethod
+    def algo_settings_from_response(algo_response, algorithm):
+        # if not algorithm and algo_number:
+        #     algorithm = public_api.algo_to_name(algo_number)
+        # if not algo_number and algorithm:
+        #     algo_number = public_api.algo_to_number(algorithm)
+        # if not algorithm and not algo_number:
+        #     raise Exception('Missing algorithm or algo_number for algo_response parameter')
         algo_setting = None
         for item in algo_response['miningAlgorithms']:
-            print(algo_response['miningAlgorithms'])
-            try:
-                if item['algorithm'] == algorithm:
-                    algo_setting = item
-            except KeyError as e:
-                print(e)
+            if item['algorithm'] == algorithm:
+                algo_setting = item
         if algo_setting is None:
             raise Exception('Settings for algorithm not found in algo_response parameter')
         return algo_setting
@@ -159,7 +188,6 @@ class public_api:
             'market': str(market).upper(),
             'limit': float(limit)
         }
-        print(request_data)
         return self.request('POST', '/main/api/v2/hashpower/orders/fixedPrice', '', request_data)
         # {
         #     fixedMax : number - Maximal allowed speed limit for fixed order [TH/Sol/G]/s
@@ -190,7 +218,13 @@ class public_api:
     # values for price, limit, information about minimum pool difficulty and more that can be useful in 
     # automated application like NicehashBot 
     def buy_info(self):
-        return self.request('GET', '/main/api/v2/public/buy/info', '', None)
+        if "buy_info" in CACHE and int(CACHE["buy_info"]["timeout"]) < datetime.now():
+            pass
+        else:
+            CACHE["buy_info"] = dict({})
+            CACHE["buy_info"]["timeout"] = int(datetime.timestamp(datetime.now())) + int(TIMEOUT)
+            CACHE["buy_info"]["value"] = self.request('GET', '/main/api/v2/public/buy/info', '', None)
+        return CACHE["buy_info"]["value"]
 
     # Get all hashpower orders. Request parameter work as filter to fine tune the result. The result is paged, when needed.
     # algorithm   string  Algorithm
@@ -201,7 +235,6 @@ class public_api:
     # size    integer     Size
     def get_orders(self, algorithm="", market="", op="LT", timestamp=None, page=0, size=100):
         if not timestamp: timestamp = self.get_epoch_ms_from_now()
-        
         query = "algorithm={algorithm}&market={market}&op={op}&timestamp={timestamp}&page={page}&size={size}".format(algorithm=algorithm, market=market, op=op, timestamp=timestamp, page=page, size=size)
         return self.request('GET', '/main/api/v2/public/orders', query, None)
 
@@ -380,10 +413,16 @@ class private_api(public_api):
 
         url = self.host + path
         if query:
+            # query = query.replace("[]", "") # clean arrays into empty strings
             url += '?' + query
 
         if self.verbose:
+            print()
             print(method, url)
+            if query != "":
+                print('query: '+str(query))
+            if body:
+                print('body: '+str(body))
 
         if body:
             response = self.session.request(method, url, data=body_json)
@@ -429,7 +468,7 @@ class private_api(public_api):
     # Get deposit address for selected currency for all wallet types.
     # currency *  string  Currency
     # walletType  string  Wallet        [ "BITGO", "BLOCKCHAIN", "LIGHTNING", "MULTISIG" ] 
-    def get_deposit_addresses(self, currency, walletType=None):
+    def get_deposit_addresses(self, currency, walletType=""):
         query = "currency={currency}&walletType={walletType}".format(currency=currency, walletType=walletType)
         return self.request('GET', '/main/api/v2/accounting/depositAddresses/', query, None)
 
@@ -442,6 +481,7 @@ class private_api(public_api):
     # size    integer     Size - max 100                   100
     def get_deposits_for_currency(self, currency, statuses=[], op="LT", timestamp=None, page=0, size=100):
         if not timestamp: timestamp = self.get_epoch_ms_from_now()
+        if len(statuses) == 0: statuses = ""
         query = "statuses={statuses}&op={op}&timestamp={timestamp}&page={page}&size={size}".format(statuses=statuses, op=op, timestamp=timestamp, page=page, size=size)
         return self.request('GET', '/main/api/v2/accounting/deposits/{currency}'.format(currency=currency), query, None)
 
@@ -493,6 +533,7 @@ class private_api(public_api):
     # size    integer     Size - max 100           10
     def get_transactions_for_currency(self, currency, tx_type="", purposes=[], op="", timestamp=None, page=0, size=10):
         if not timestamp: timestamp = self.get_epoch_ms_from_now()
+        if len(purposes) == 0: purposes = ""
         query = "type={type}&purposes={purposes}&op={op}&timestamp={timestamp}&page={page}&size={size}".format(type=tx_type, purposes=purposes, op=op, timestamp=timestamp, page=page, size=size)        
         return self.request('GET', '/main/api/v2/accounting/transactions/{currency}'.format(currency=currency), query, None)
 
@@ -544,6 +585,7 @@ class private_api(public_api):
     # size    integer     Size - max 100           100
     def get_withdrawals_for_currency(self, currency, statuses=[], op="LT", timestamp=None, page=0, size=100):
         if not timestamp: timestamp = self.get_epoch_ms_from_now()
+        if len(statuses) == 0: statuses = ""
         query = "statuses={statuses}&op={op}&timestamp={timestamp}&page={page}&size={size}".format(currency=currency, statuses=statuses, op=op, timestamp=timestamp, page=page, size=size)
         return self.request('GET', '/main/api/v2/accounting/withdrawals/{currency}'.format(currency=currency), query, None)
 
@@ -576,8 +618,8 @@ class private_api(public_api):
     # When creating STANDARD order, speed limit, price, amount and pool id has to be specified, along with 
     # market factor and display market factor from /main/api/v2/public/buy/info endpoint for the same algorithm.
     def create_standard_hashpower_order(self, market, algorithm, price, limit, amount, pool_id):
-        algo_response = self.buy_info()
-        algo_setting = self.algo_settings_from_response(algorithm, algo_response)
+        algo_response = self.get_algorithms()
+        algo_setting = public_api.algo_settings_from_response(algo_response, algorithm)
         order_data = {
             "market": market,
             "algorithm": algorithm,
@@ -598,8 +640,8 @@ class private_api(public_api):
 
     # When creating FIXED order request, limit and price should not be different from fixedPrice response.
     def create_fixed_hashpower_order(self, market, algorithm, price, limit, amount, pool_id):
-        algo_response = self.buy_info()
-        algo_setting = self.algo_settings_from_response(algorithm, algo_response)
+        algo_response = self.get_algorithms()
+        algo_setting = public_api.algo_settings_from_response(algo_response, algorithm)
         fixed_price = self.fixed_price_request(algorithm, market, limit)
         order_data = {
             "market": market,
@@ -655,8 +697,8 @@ class private_api(public_api):
     # displayMarketFactor     string  Used display market factor
     # marketFactor    number  Used display market factor (numeric)
     def set_price_hashpower_order(self, order_id, price, algorithm):
-        algo_response = self.buy_info()
-        algo_setting = self.algo_settings_from_response(algorithm, algo_response)
+        algo_response = self.get_algorithms()
+        algo_setting = public_api.algo_settings_from_response(algo_response, algorithm)
         price_data = {
             "price": price,
             "marketFactor": algo_setting['marketFactor'],
@@ -666,8 +708,8 @@ class private_api(public_api):
     
     # At any time order speed limit and price can be altered when hashpower order is active. Changes must be withing limits defined for each algoritm separately. These limits can be fetched using /main/api/v2/public/buy/info endpoint. Order price can be decrease once in 10 minutes and the value of change must not be greater than more than down_step parameter from buy info endpoing.
     def set_limit_hashpower_order(self, order_id, limit, algorithm):
-        algo_response = self.buy_info()
-        algo_setting = self.algo_settings_from_response(algorithm, algo_response)
+        algo_response = self.get_algorithms()
+        algo_setting = public_api.algo_settings_from_response(algo_response, algorithm)
         limit_data = {
             "limit": limit,
             "marketFactor": algo_setting['marketFactor'],
@@ -677,8 +719,8 @@ class private_api(public_api):
     
     # At any time order speed limit and price can be altered when hashpower order is active. Changes must be withing limits defined for each algoritm separately. These limits can be fetched using /main/api/v2/public/buy/info endpoint. Order price can be decrease once in 10 minutes and the value of change must not be greater than more than down_step parameter from buy info endpoing.
     def set_price_and_limit_hashpower_order(self, order_id, price, limit, algorithm):
-        algo_response = self.buy_info()
-        algo_setting = self.algo_settings_from_response(algorithm, algo_response)
+        algo_response = self.get_algorithms()
+        algo_setting = public_api.algo_settings_from_response(algo_response, algorithm)
         price_data = {
             "price": price,
             "limit": limit,
@@ -697,8 +739,8 @@ class private_api(public_api):
     # displayMarketFactor     string  Unit of market factor
     # marketFactor    number  Market factor
     def estimate_order_duration(self, algorithm, order_type, price, limit, amount, decreaseFee=False):
-        algo_response = self.buy_info()
-        algo_setting = self.algo_settings_from_response(algorithm, algo_response)
+        algo_response = self.get_algorithms()
+        algo_setting = public_api.algo_settings_from_response(algo_response, algorithm)
         estimate_data = {
             "type": order_type,
             "price": price,
@@ -794,7 +836,7 @@ class private_api(public_api):
     # page    integer     Page number      0
     # sortParameter   string  Sort parameter        RIG_NAME            [ "RIG_NAME", "TIME", "MARKET", "ALGORITHM", "UNPAID_AMOUNT", "DIFFICULTY", "SPEED_ACCEPTED", "SPEED_REJECTED", "PROFITABILITY" ]
     # sortDirection   string  Sort direction      ASC                   [ "ASC", "DESC" ]
-    def get_active_workers(self, btcAddress, size, page, sortParameter, sortDirection):
+    def get_active_workers(self, btcAddress, size=100, page=0, sortParameter="RIG_NAME", sortDirection="ASC"):
         return self.request('GET', '/main/api/v2/mining/rigs/activeWorkers', '', None)
 
     # Get list of payouts. 
@@ -949,9 +991,9 @@ class private_api(public_api):
     # sortDirection   string  Sort direction (optional, default value is DESC)
     # limit   integer     Query limit (optional, default value is 25)
     # timestamp   integer     Select older than timestamp in µs (optional, default value is current timestamp)
-    def get_my_orders(self, market, orderState="", orderStatus="", sortDirection="DESC", limit=25, timestamp=None):
+    def get_my_orders(self, marketSymbol, orderState="", orderStatus="", sortDirection="DESC", limit=25, timestamp=None):
         if not timestamp: timestamp = self.get_epoch_ms_from_now()
-        query = "market={market}&orderState={orderState}&orderStatus={orderStatus}&sortDirection={sortDirection}&limit={limit}&timestamp={timestamp}".format(market=market, orderState=orderState, orderStatus=orderStatus, sortDirection=sortDirection, limit=limit, timestamp=timestamp)
+        query = "market={market}&orderState={orderState}&orderStatus={orderStatus}&sortDirection={sortDirection}&limit={limit}&timestamp={timestamp}".format(market=marketSymbol, orderState=orderState, orderStatus=orderStatus, sortDirection=sortDirection, limit=limit, timestamp=timestamp)
         return self.request('GET', '/exchange/api/v2/info/myOrders', query, None)
 
     # Get the list of trades that were executed on my orders matching the filtering criteria as specified.

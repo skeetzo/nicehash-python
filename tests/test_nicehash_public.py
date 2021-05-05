@@ -1,8 +1,8 @@
 import unittest
 import os
+import time
 from dotenv import load_dotenv
 load_dotenv()
-# import pytest
 #
 from python import nicehash
 
@@ -15,11 +15,17 @@ KEY = os.environ.get("TEST_KEY")
 # KEY = os.environ.get("KEY")
 SECRET = os.environ.get("TEST_SECRET")
 # SECRET = os.environ.get("SECRET")
-#
+###
+# Parameters for testing
+###
 ACTIVITY_TYPES = nicehash.ACTIVITY_TYPES[0]
+ADDRESS = None
 ALGORITHM = nicehash.ALGORITHMS[0]
+CURRENCY = "TBTC"
 MARKET = nicehash.MARKETS[0]
 RESOLUTION = nicehash.RESOLUTIONS[0]
+MARKET_SYMBOLS = ["TETHTBTC", "TBTCTUSDT", "TBCHTBTC"]
+MARKET_SYMBOL = MARKET_SYMBOLS[0]
 OP = nicehash.OPS[0]
 # ORDER_RELATION = nicehash.ORDER_RELATION[0]
 SORT_PARAMETER = nicehash.SORT_PARAMETERS[0]
@@ -27,21 +33,58 @@ SORT_DIRECTION = nicehash.SORT_DIRECTIONS[0]
 SORT_OPTION = nicehash.SORT_OPTIONS[0]
 SIDE = nicehash.SIDES[0]
 STATUS = nicehash.STATUSES[0]
-TX_TYP = nicehash.TX_TYPES[0]
-WALLET_TYPE = nicehash.WALLET_TYPES[0]
-
-import time
+# TRANSACTION_TYPE = nicehash.TX_TYPES[0]
+# WALLET_TYPE = nicehash.WALLET_TYPES[0]
+#
 FROM_S = int(time.time()) - 300
 TO_S = FROM_S
 TIMESTAMP = int(time.time())
+###
 
-ADDRESS = None
-CURRENCY = "TBTC"
-MARKET_SYMBOLS = ["TETHTBTC", "TBTCTUSDT", "TBCHTBTC"]
-MARKET_SYMBOL = MARKET_SYMBOLS[0]
-
+# test values in lists
 TEST_LISTS = False
+
+# For selectively mass testing, ignoring tests that fail because parameters don't exist with to check
+TESTING_URIS = [
+	"/main/api/v2/mining/external/{btcAddress}/rigs/activeWorkers",
+	"/main/api/v2/mining/external/{btcAddress}/rigs/stats/algo",
+	"/main/api/v2/mining/external/{btcAddress}/rigs/stats/unpaid",
+	"/main/api/v2/mining/external/{btcAddress}/rigs/withdrawals",
+	"/main/api/v2/mining/external/{btcAddress}/rigs2",
+	"/main/api/v2/hashpower/orderBook",
+	"/main/api/v2/hashpower/orders/fixedPrice",
+	"/main/api/v2/hashpower/orders/summaries",
+	"/main/api/v2/hashpower/orders/summary",
+	"/main/api/v2/public/algo/history",
+	"/main/api/v2/public/buy/info",
+	"/main/api/v2/public/orders",
+	"/main/api/v2/public/simplemultialgo/info",
+	"/main/api/v2/public/stats/global/24h",
+	"/main/api/v2/public/stats/global/current",
+	"/main/api/v2/mining/algorithms",
+	"/main/api/v2/public/currencies",
+	"/main/api/v2/public/service/fee/info",
+	"/api/v2/enum/countries",
+	"/api/v2/enum/kmCountries",
+	"/api/v2/enum/permissions",
+	"/api/v2/enum/xchCountries",
+	"/api/v2/system/flags",
+	"/api/v2/time",
+	"/exchange/api/v2/info/candlesticks",
+	"/exchange/api/v2/info/marketStats",
+	"/exchange/api/v2/info/prices",
+	"/exchange/api/v2/info/status",
+	"/exchange/api/v2/info/trades",
+	"/exchange/api/v2/orderbook"
+]
 VERBOSE = True
+
+def check_test_paramters(parameters):
+	for p in parameters:
+		if "algorithm_code" in str(p):
+			if not MARKET_SYMBOLS or len(MARKET_SYMBOLS) == 0 or not MARKET_SYMBOL:
+				raise Exception("Missing test value: {}".format(p))
+		if not globals()[p.upper()]: raise Exception("Missing test value: {}".format(p))
 
 class TestNiceHashPublic(unittest.TestCase):
 
@@ -179,8 +222,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/mining/external/{btcAddress}/rigs/activeWorkers
 
+	@unittest.skipIf("/main/api/v2/mining/external/{btcAddress}/rigs/activeWorkers" not in TESTING_URIS, "skipping successful")
 	def test_active_workers(self):
-		if not ADDRESS: return
+		check_test_paramters(["address"])
 		active_workers = self.public_api.get_active_workers(ADDRESS)
 		# print(active_workers)
 		self.assertIsInstance(active_workers, dict)
@@ -213,6 +257,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(worker)
 		elif len(active_workers["workers"]) > 0:
 			test(active_workers["workers"][0])
+		else: raise Exception("Empty return data for testing; missing workers")
 	# {
 	# 	pagination : {
 	# 		size : integer - Page size
@@ -247,8 +292,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/mining/external/{btcAddress}/rigs/stats/algo
 
+	@unittest.skipIf("/main/api/v2/mining/external/{btcAddress}/rigs/stats/algo" not in TESTING_URIS, "skipping successful")
 	def test_algo_statistics(self):
-		if not ADDRESS or not ALGORITHM: return
+		check_test_paramters(["address", "algorithm"])
 		algo_statistics = self.public_api.get_algo_statistics(ADDRESS, ALGORITHM)
 		# print(algo_statistics)
 		self.assertIsInstance(algo_statistics, dict)
@@ -259,6 +305,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(col)
 		elif len(algo_statistics["columns"]) > 0:
 			test(algo_statistics["columns"][0])
+		else: raise Exception("Empty return data for testing; missing algo statistics columns")
 		def test2(data):
 			def test3(stat):
 				self.assertIsInstance(stat, dict)
@@ -266,13 +313,15 @@ class TestNiceHashPublic(unittest.TestCase):
 			if TEST_LISTS:
 				for stat in algo_statistics["data"]:
 					test3(stat)
-			else:
+			elif len(algo_statistics["data"]) > 0:
 				test3(algo_statistics["data"][0])
+			else: raise Exception("Empty return data for testing; missing algo statistics data sets")
 		if TEST_LISTS:
 			for data in algo_statistics["data"]:
 				test2(data)
 		elif len(algo_statistics["data"]) > 0:
 			test(algo_statistics["data"][0])
+		else: raise Exception("Empty return data for testing; missing algo statistics data")
 	# {
 	# 	columns : [
 	# 		string - Column definition of statistical streams
@@ -286,8 +335,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/mining/external/{btcAddress}/rigs/stats/unpaid
 
+	@unittest.skipIf("/main/api/v2/mining/external/{btcAddress}/rigs/stats/unpaid" not in TESTING_URIS, "skipping successful")
 	def test_unpaid_statistics(self):
-		if not ADDRESS: return
+		check_test_paramters(["address"])
 		unpaid_statistics = self.public_api.get_unpaid_statistics(ADDRESS)
 		# print(unpaid_statistics)
 		self.assertIsInstance(unpaid_statistics, dict)
@@ -299,6 +349,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(col)
 		elif len(unpaid_statistics["columns"]) > 0:
 			test(unpaid_statistics["columns"][0])
+		else: raise Exception("Empty return data for testing; missing unpaid statistics columns")
 		self.assertIsInstance(unpaid_statistics["data"], list)
 		def test2(data):
 			self.assertIsInstance(data, list)
@@ -314,6 +365,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test2(data)
 		elif len(unpaid_statistics["data"]) > 0:
 			test2(unpaid_statistics["data"][0])
+		else: raise Exception("Empty return data for testing; missing unpaid statistics data")
 	# {
 	# 	columns : [
 	# 		string - Column definition of statistical streams
@@ -327,8 +379,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/mining/external/{btcAddress}/rigs/withdrawals
 
+	@unittest.skipIf("/main/api/v2/mining/external/{btcAddress}/rigs/withdrawals" not in TESTING_URIS, "skipping successful")
 	def test_withdrawals(self):
-		if not ADDRESS: return
+		check_test_paramters(["address"])
 		withdrawals = self.public_api.get_withdrawals(ADDRESS)
 		# print(withdrawals)
 		self.assertIsInstance(withdrawals, dict)
@@ -352,6 +405,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(withdrawal)
 		elif len(withdrawals["list"]) > 0:
 			test(withdrawals["list"][0])
+		else: raise Exception("Empty return data for testing; missing withdrawals")
 		self.assertIsInstance(withdrawals["pagination"], dict)
 		self.assertIsInstance(withdrawals["pagination"]["size"], int)
 		self.assertIsInstance(withdrawals["pagination"]["page"], int)
@@ -384,8 +438,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/mining/external/{btcAddress}/rigs2
 
+	@unittest.skipIf("/main/api/v2/mining/external/{btcAddress}/rigs2" not in TESTING_URIS, "skipping successful")
 	def test_rig_statuses(self):
-		if not ADDRESS: return
+		check_test_paramters(["address"])
 		rig_statuses = self.public_api.get_rig_statuses(ADDRESS)
 		# print(rig_statuses)
 		self.assertIsInstance(rig_statuses, dict)
@@ -398,8 +453,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/hashpower/orderBook
 
+	@unittest.skipIf("/main/api/v2/hashpower/orderBook" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_orderbook(self):
-		if not ALGORITHM: return
+		check_test_paramters(["algorithm"])
 		hashpower_orderbook = self.public_api.get_hashpower_orderbook(ALGORITHM)
 		# print(hashpower_orderbook)
 		self.assertIsInstance(hashpower_orderbook, dict)
@@ -427,7 +483,6 @@ class TestNiceHashPublic(unittest.TestCase):
 			self.assertIsInstance(hashpower_orderbook["stats"]["pagination"]["page"], int)
 			self.assertIsInstance(hashpower_orderbook["stats"]["pagination"]["totalPageCount"], int)
 		except KeyError: pass
-
 	# {
 	# 	stats : {
 	# 		{
@@ -467,8 +522,12 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/hashpower/orders/fixedPrice
 
+	@unittest.skipIf("/main/api/v2/hashpower/orders/fixedPrice" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
 	def test_price_request(self):
-		if not nicehash.MARKETS or not MARKET: return
+		check_test_paramters(["markets", "market"])
+		# TODO
+		# fix, notes in changelog
 		buy_info = self.public_api.buy_info()
 		# print(buy_info)
 		def test(algo_info):
@@ -492,6 +551,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo_info)
 		elif len(buy_info["miningAlgorithms"]) > 0:
 			test(buy_info["miningAlgorithms"][0])
+		else: raise Exception("Empty return data for testing; missing mining algorithms")
 	# {
 	# 	fixedMax : number - Maximal allowed speed limit for fixed order [TH/Sol/G]/s
 	# 	fixedPrice : number - Current price for fixed order in BTC/factor[TH/Sol/G]/day
@@ -499,7 +559,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/hashpower/orders/summaries
 
+	@unittest.skipIf("/main/api/v2/hashpower/orders/summaries" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_summaries(self):
+		check_test_paramters(["algorithm", "market"])
 		hashpower_summaries = self.public_api.get_hashpower_summaries()
 		# print(hashpower_summaries)
 		self.assertIsInstance(hashpower_summaries, dict)
@@ -574,7 +636,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/hashpower/orders/summary
 
+	@unittest.skipIf("/main/api/v2/hashpower/orders/summary" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_orders_summary(self):
+		check_test_paramters(["algorithm", "market"])
 		hashpower_orders_summary = self.public_api.get_hashpower_orders_summary(ALGORITHM, MARKET)
 		# print(hashpower_orders_summary)
 		self.assertIsInstance(hashpower_orders_summary, dict)
@@ -590,6 +654,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(prof)
 		elif len(hashpower_orders_summary["profs"]) > 0:
 			test(hashpower_orders_summary["profs"][0])
+		else: raise Exception("Empty return data for testing; missing order summary profs")
 		self.assert_is_number(hashpower_orders_summary["acceptedPoolSpeed"])
 		self.assert_is_number(hashpower_orders_summary["acceptedRigSpeed"])
 		self.assert_is_number(hashpower_orders_summary["payingPrice"])
@@ -614,7 +679,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/algo/history
 
+	@unittest.skipIf("/main/api/v2/public/algo/history" not in TESTING_URIS, "skipping successful")
 	def test_algo_history(self):
+		check_test_paramters(["algorithm"])
 		if not ALGORITHM: return
 		algo_history = self.public_api.get_algo_history(ALGORITHM)
 		# print(algo_history)
@@ -633,6 +700,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(history)
 		elif len(algo_history) > 0:
 			test(algo_history[0])
+		else: raise Exception("Empty return data for testing; missing algo history")
 	# [
 	# 	[
 	# 		number - History of algorithm, list with 3 items: timestamp, speed [TH/Sol/G]/s, price in satoshi/factor[H/Sol/G]/sec
@@ -641,6 +709,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/buy/info
 
+	@unittest.skipIf("/main/api/v2/public/buy/info" not in TESTING_URIS, "skipping successful")
 	def test_buy_info(self):
 		buy_info = self.public_api.buy_info()
 		# print(buy_info)
@@ -665,6 +734,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo)
 		elif len(buy_info["miningAlgorithms"]) > 0:
 			test(buy_info["miningAlgorithms"][0])
+		else: raise Exception("Empty return data for testing; missing mining algorithms")
 	# {
 	# 	miningAlgorithms : [
 	# 		{
@@ -686,6 +756,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/orders
 
+	@unittest.skipIf("/main/api/v2/public/orders" not in TESTING_URIS, "skipping successful")
 	def test_orders(self):
 		orders = self.public_api.get_orders()
 		# print(orders)
@@ -698,6 +769,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(order)
 		elif len(orders["list"]) > 0:
 			test(orders["list"][0])
+		else: raise Exception("Empty return data for testing; missing hashpower orders")
 	# {
 	# 	list : [
 	# 		{
@@ -753,6 +825,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/simplemultialgo/info
 
+	@unittest.skipIf("/main/api/v2/public/simplemultialgo/info" not in TESTING_URIS, "skipping successful")
 	def test_multialgo_info(self):
 		multialgo_info = self.public_api.get_multialgo_info()
 		# print(multialgo_info)
@@ -769,6 +842,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo)
 		elif len(multialgo_info["miningAlgorithms"]) > 0:
 			test(multialgo_info["miningAlgorithms"][0])
+		else: raise Exception("Empty return data for testing; missing mining algorithms")
 	# {
 	# 	miningAlgorithms : [
 	# 		{
@@ -782,6 +856,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/stats/global/24h
 
+	@unittest.skipIf("/main/api/v2/public/stats/global/24h" not in TESTING_URIS, "skipping successful")
 	def test_global_stats_24(self):
 		global_stats_24 = self.public_api.get_global_stats_24()
 		# print(global_stats_24)
@@ -799,6 +874,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo)
 		elif len(global_stats_24["algos"]) > 0:
 			test(global_stats_24["algos"][0])
+		else: raise Exception("Empty return data for testing; missing algos")
 	# {
 	# 	algos : [
 	# 		{
@@ -813,6 +889,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/stats/global/current
 
+	@unittest.skipIf("/main/api/v2/public/stats/global/current" not in TESTING_URIS, "skipping successful")
 	def test_current_global_stats(self):
 		current_global_stats = self.public_api.get_current_global_stats()
 		# print(current_global_stats)
@@ -830,6 +907,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo)
 		elif len(current_global_stats["algos"]) > 0:
 			test(current_global_stats["algos"][0])
+		else: raise Exception("Empty return data for testing; missing algos")
 	# {
 	# 	algos : [
 	# 		{
@@ -846,6 +924,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/mining/algorithms
 
+	@unittest.skipIf("/main/api/v2/mining/algorithms" not in TESTING_URIS, "skipping successful")
 	def test_algorithms(self):
 		algorithms = self.public_api.get_algorithms()
 		# print(algorithms)
@@ -874,6 +953,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(algo)
 		elif len(algorithms["miningAlgorithms"]) > 0:
 			test(algorithms["miningAlgorithms"][0])
+		else: raise Exception("Empty return data for testing; missing mining algorithms")
 	# {
 	# 	miningAlgorithms : [
 	# 		{
@@ -899,6 +979,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /main/api/v2/public/currencies
 
+	@unittest.skipIf("/main/api/v2/public/currencies" not in TESTING_URIS, "skipping successful")
 	def test_currencies(self):
 		currencies = self.public_api.get_currencies()
 		# print(currencies)
@@ -944,8 +1025,6 @@ class TestNiceHashPublic(unittest.TestCase):
 	# 	]
 	# }
 
-	# /main/api/v2/public/service/fee/info
-
 	def assert_is_fee_response(self, fee_response):
 		self.assertIsInstance(fee_response, dict)
 		try:
@@ -985,7 +1064,9 @@ class TestNiceHashPublic(unittest.TestCase):
 	# 	]
 	# }
 
+	# /main/api/v2/public/service/fee/info
 
+	@unittest.skipIf("/main/api/v2/public/service/fee/info" not in TESTING_URIS, "skipping successful")
 	def test_fee_rules(self):
 		fee_rules = self.public_api.get_fee_rules()
 		# print(fee_rules)
@@ -1130,6 +1211,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /api/v2/enum/countries
 
+	@unittest.skipIf("/api/v2/enum/countries" not in TESTING_URIS, "skipping successful")
 	def test_countries(self):
 		countries = self.public_api.get_countries()
 		# print(countries)
@@ -1147,6 +1229,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(country)
 		elif len(countries["countries"]) > 0:
 			test(countries["countries"][0])
+		else: raise Exception("Empty return data for testing; missing countries")
 		def test2(continent):
 			self.assertIsInstance(continent, dict)
 			self.assertIsInstance(continent["code"], str)
@@ -1157,6 +1240,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test2(continent)
 		elif len(countries["continents"]) > 0:
 			test2(countries["continents"][0])
+		else: raise Exception("Empty return data for testing; missing continents")
 		def test3(statePerCountry):
 			self.assertIsInstance(statePerCountry, dict)
 			self.assertIsInstance(statePerCountry["country"], str)
@@ -1169,12 +1253,14 @@ class TestNiceHashPublic(unittest.TestCase):
 					test4(state)
 			elif len(statePerCountry["states"]) > 0:
 				test4(statePerCountry["states"][0])
+			else: raise Exception("Empty return data for testing; missing states")
 		self.assertIsInstance(countries["statesPerCountry"], list)
 		if TEST_LISTS:
 			for statePerCountry in countries["statesPerCountry"]:
 				test3(statePerCountry)
 		elif len(countries["statesPerCountry"]) > 0:
 			test3(countries["statesPerCountry"][0])
+		else: raise Exception("Empty return data for testing; missing states per country")
 	# {
 	# 	countries : [
 	# 		{
@@ -1206,6 +1292,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /api/v2/enum/kmCountries
 
+	@unittest.skipIf("/api/v2/enum/kmCountries" not in TESTING_URIS, "skipping successful")
 	def test_km_countries(self):
 		km_countries = self.public_api.get_km_countries()
 		# print(km_countries)
@@ -1217,12 +1304,14 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(km)
 		elif len(km_countries) > 0:
 			test(km_countries[0])
+		else: raise Exception("Empty return data for testing; missing km countries")
 	# [
 	# 	object
 	# ]
 
 	# /api/v2/enum/permissions
 
+	@unittest.skipIf("/api/v2/enum/permissions" not in TESTING_URIS, "skipping successful")
 	def test_permissions(self):
 		permissions = self.public_api.get_permissions()
 		# print(permissions)
@@ -1245,6 +1334,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(setting)
 		elif len(permissions["permissionSettings"]) > 0:
 			test(permissions["permissionSettings"][0])
+		else: raise Exception("Empty return data for testing; missing permission settings")
 	# {
 	# 	permissionSettings : [
 	# 		{
@@ -1266,6 +1356,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /api/v2/enum/xchCountries
 
+	@unittest.skipIf("/api/v2/enum/xchCountries" not in TESTING_URIS, "skipping successful")
 	def test_xch_countries(self):
 		xch_countries = self.public_api.get_xch_countries()
 		# print(xch_countries)
@@ -1277,12 +1368,14 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(c)
 		elif len(xch_countries) > 0:
 			test(xch_countries[0])
+		else: raise Exception("Empty return data for testing; missing xch countries")
 	# [
 	# 	object
 	# ]
 
 	# /api/v2/system/flags
 
+	@unittest.skipIf("/api/v2/system/flags" not in TESTING_URIS, "skipping successful")
 	def test_api_flags(self):
 		api_flags = self.public_api.get_api_flags()
 		# print(api_flags)
@@ -1297,6 +1390,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(flag)
 		elif len(api_flags["list"]) > 0:
 			test(api_flags["list"][0])
+		else: raise Exception("Empty return data for testing; missing api flags list")
 	# {
 	# 	list : [
 	# 		{
@@ -1308,6 +1402,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /api/v2/time
 
+	@unittest.skipIf("/api/v2/time" not in TESTING_URIS, "skipping successful")
 	def test_server_time(self):
 		server_time = self.public_api.get_server_time()
 		# print(server_time)
@@ -1321,8 +1416,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /exchange/api/v2/info/candlesticks
 
+	@unittest.skipIf("/exchange/api/v2/info/candlesticks" not in TESTING_URIS, "skipping successful")
 	def test_candlesticks(self):
-		if not MARKET_SYMBOLS or not len(MARKET_SYMBOLS) == 0 or not FROM_S or not TO_S or not RESOLUTION: return
+		check_test_paramters(["market_symbols", "from_s", "to_s", "resolution"])
 		candlesticks = self.public_api.get_candlesticks(MARKET_SYMBOLS[0], FROM_S, TO_S, RESOLUTION)
 		# print(candlesticks)
 		self.assertIsInstance(candlesticks, list)
@@ -1341,6 +1437,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(candlestick)
 		elif len(candlesticks) > 0:
 			test(candlesticks[0])
+		else: raise Exception("Empty return data for testing; missing candlesticks")
 	# [
 	# 	{
 	# 		time : integer - Start time
@@ -1356,8 +1453,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /exchange/api/v2/info/marketStats
 
+	@unittest.skipIf("/exchange/api/v2/info/marketStats" not in TESTING_URIS, "skipping successful")
 	def test_exchange_statistics(self):
-		if not MARKET_SYMBOLS or not len(MARKET_SYMBOLS) == 0: return
+		check_test_paramters(["market_symbols"])
 		exchange_statistics = self.public_api.get_exchange_statistics()
 		# print(exchange_statistics)
 		self.assertIsInstance(exchange_statistics, dict)
@@ -1407,8 +1505,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /exchange/api/v2/info/prices
 
+	@unittest.skipIf("/exchange/api/v2/info/prices" not in TESTING_URIS, "skipping successful")
 	def test_current_prices(self):
-		if not MARKET_SYMBOLS or not len(MARKET_SYMBOLS) == 0: return
+		check_test_paramters(["market_symbols"])
 		current_prices = self.public_api.get_current_prices()
 		# print(current_prices)
 		self.assertIsInstance(current_prices, dict)
@@ -1430,6 +1529,7 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /exchange/api/v2/info/status
 
+	@unittest.skipIf("/exchange/api/v2/info/status" not in TESTING_URIS, "skipping successful")
 	def test_exchange_markets_info(self):
 		exchange_markets_info = self.public_api.get_exchange_markets_info()
 		# print(exchange_markets_info)
@@ -1464,6 +1564,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(symbol)
 		elif len(exchange_markets_info["symbols"]) > 0:
 			test(exchange_markets_info["symbols"][0])
+		else: raise Exception("Empty return data for testing; missing market symbols")
 	# {
 	# 	symbols : [
 	# 		{
@@ -1490,8 +1591,9 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /exchange/api/v2/info/trades
 
+	@unittest.skipIf("/exchange/api/v2/info/trades" not in TESTING_URIS, "skipping successful")
 	def test_trades(self):
-		if not MARKET_SYMBOLS or not len(MARKET_SYMBOLS) == 0: return
+		check_test_paramters(["market_symbols"])
 		trades = self.public_api.get_trades(MARKET_SYMBOLS[0])
 		# print(trades)
 		self.assertIsInstance(trades, list)
@@ -1511,6 +1613,7 @@ class TestNiceHashPublic(unittest.TestCase):
 				test(trade)
 		elif len(trades) > 0:
 			test(trades[0])
+		else: raise Exception("Empty return data for testing; missing trades")
 	# [
 	# 	{
 	# 		id : string - Trade id
@@ -1527,42 +1630,49 @@ class TestNiceHashPublic(unittest.TestCase):
 
 	# /exchange/api/v2/orderbook
 
+	@unittest.skipIf("/exchange/api/v2/orderbook" not in TESTING_URIS, "skipping successful")
 	def test_orderbook(self):
-		if not MARKET_SYMBOLS or not len(MARKET_SYMBOLS) == 0: return
+		check_test_paramters(["market_symbols"])
 		orderbook = self.public_api.get_exchange_orderbook(MARKET_SYMBOLS[0])
 		# print(orderbook)
 		self.assertIsInstance(orderbook, dict)
 		self.assertIsInstance(orderbook["tick"], int)
-		self.assertIsInstance(orderbook["sell"], list)
-		def test(sell):
-			self.assertIsInstance(sell, list)
-			def test2(bid):
-				self.assertIsInstance(bid, int)
+		try:
+			self.assertIsInstance(orderbook["sell"], list)
+			def test(sell):
+				self.assertIsInstance(sell, list)
+				def test2(bid):
+					self.assertIsInstance(bid, int)
+				if TEST_LISTS:
+					for bid in sell:
+						test2(bid)
+				elif len(sell) > 0:
+					test2(sell[0])
 			if TEST_LISTS:
-				for bid in sell:
-					test2(bid)
-			elif len(sell) > 0:
-				test2(sell[0])
-		if TEST_LISTS:
-			for sell in orderbook["sell"]:
-				test(sell)
-		elif len(orderbook["sell"]) > 0:
-			test(orderbook["sell"][0])
-		self.assertIsInstance(orderbook["buys"], list)
-		def test(buy):
-			self.assertIsInstance(buy, list)
-			def test2(ask):
-				self.assertIsInstance(ask, int)
+				for sell in orderbook["sell"]:
+					test(sell)
+			elif len(orderbook["sell"]) > 0:
+				test(orderbook["sell"][0])
+			else: raise Exception("Empty return data for testing; missing orderbook sells")
+		except KeyError: pass
+		try:
+			self.assertIsInstance(orderbook["buys"], list)
+			def test(buy):
+				self.assertIsInstance(buy, list)
+				def test2(ask):
+					self.assertIsInstance(ask, int)
+				if TEST_LISTS:
+					for ask in buy:
+						test2(ask)
+				elif len(buy) > 0:
+					test2(buy[0])
 			if TEST_LISTS:
-				for ask in buy:
-					test2(ask)
-			elif len(buy) > 0:
-				test2(buy[0])
-		if TEST_LISTS:
-			for buy in orderbook["buys"]:
-				test(buy)
-		elif len(orderbook["buys"]) > 0:
-			test(orderbook["buys"][0])
+				for buy in orderbook["buys"]:
+					test(buy)
+			elif len(orderbook["buys"]) > 0:
+				test(orderbook["buys"][0])
+			else: raise Exception("Empty return data for testing; missing orderbook buys")
+		except KeyError: pass
 	# {
 	# 	tick : integer - Order book tick number
 	# 	sell : [
@@ -1576,8 +1686,6 @@ class TestNiceHashPublic(unittest.TestCase):
 	# 		]
 	# 	]
 	# }
-
-
 
 ############################################################################################
 

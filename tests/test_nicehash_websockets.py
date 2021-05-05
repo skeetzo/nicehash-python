@@ -13,6 +13,7 @@ SECRET = os.environ.get("TEST_SECRET")
 
 MARKET_SYMBOLS
 
+TEST_LISTS = False
 VERBOSE = False
 
 from python import nicehash
@@ -20,24 +21,32 @@ from python import nicehash
 class TestNiceHashWebsockets(unittest.TestCase):
 
 	def setUp(self):
-		# self.public_api = nicehash.public_api(HOST, verbose=VERBOSE)
-		# self.private_api = nicehash.private_api(HOST, ORGANIZATION_ID, KEY, SECRET, verbose=VERBOSE)
 		self.websockets_api = nicehash.websockets_api(HOST, ORGANIZATION_ID, KEY, SECRET, verbose=VERBOSE)
 		
-	# @classmethod
-	# def setUpClass(cls):
-	#     ...
+	def tearDown(self):
+		self.websockets_api.close()
 
-		# @classmethod
-		# def tearDownClass(cls):
-		#     ...
-		
-	# def tearDown(self):
-		# pass
+	#########################################
+
+	def assert_is_number(self, value):
+		if not value: return
+		if "." in str(value) or "e" in str(value):
+			try:
+				self.assertIsInstance(value, float)
+			except AssertionError:
+				self.assertIsInstance(float(value), float)
+		elif "\'" in str(value):
+			self.assertIsInstance(int(value), int)
+		else:
+			try:
+				self.assertIsInstance(value, int)
+			except AssertionError:
+				self.assertIsInstance(int(value), int)
 
 	##########################################
 
 	def test_subscribe_candlestick_stream(self):
+		if not RESOLUTION: raise Exception("Missing test value: resolution")
 		sub_candlestick_stream = self.websockets_api.subscribe_candlestick_stream(RESOLUTION)
 		print(sub_candlestick_stream)
 		self.assertIsInstance(sub_candlestick_stream, dict)
@@ -79,6 +88,7 @@ class TestNiceHashWebsockets(unittest.TestCase):
 	#     ]
 	# }
 	def test_unsubscribe_candlestick_stream(self):
+		if not RESOLUTION: raise Exception("Missing test value: resolution")
 		unsub_candlestick_stream = self.websockets_api.unsubscribe_candlestick_stream(RESOLUTION)
 		print(unsub_candlestick_stream)
 		self.assertEqual(unsub_candlestick_stream, dict)
@@ -89,15 +99,20 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(sub_trade_stream, dict)
 		self.assertIsInstance(sub_trade_stream.m, str)
 		self.assertIsInstance(sub_trade_stream.t, list)
-		for o in sub_trade_stream.t:
+		def test(o):
 			self.assertIsInstance(o.i, str)
-			self.assertIsInstance(o.d str)
+			self.assertIsInstance(o.d, str)
 			self.assertIsInstance(o.p, float)
 			self.assertIsInstance(o.q, float)
 			self.assertIsInstance(o.sq, float)
 			self.assertIsInstance(o.ts, int)
 			self.assertIsInstance(o.f, float)
 			self.assertIsInstance(o.m, int)
+		if TEST_LISTS:
+			for o in sub_trade_stream.t:
+				test(o)
+		elif len(sub_trade_stream.t) > 0:
+			test(sub_trade_stream.t[0])
 		# TODO
 		# add updated responses
 	# {
@@ -143,7 +158,7 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(canceled_orders.m, str)
 		self.assertIsInstance(canceled_orders.i, str)
 		self.assertIsInstance(canceled_orders.o, list)
-		for o in canceled_orders.o:
+		def test(o):
 			self.assertIsInstance(o.i, str)
 			self.assertIsInstance(o.p, float)
 			self.assertIsInstance(o.oq, float)
@@ -151,10 +166,15 @@ class TestNiceHashWebsockets(unittest.TestCase):
 			self.assertIsInstance(o.eq, float)
 			self.assertIsInstance(o.esq, float)
 			self.assertIsInstance(o.t, str)
-			self.assertIsInstance(o.d str)
+			self.assertIsInstance(o.d, str)
 			self.assertIsInstance(o.sts, int)
 			self.assertIsInstance(o.uts, int)
 			self.assertIsInstance(o.s, str)
+		if TEST_LISTS:
+			for o in canceled_orders.o:
+				test(o)
+		elif len(canceled_orders.o) > 0:
+			test(canceled_orders.o[0])
 	# {
 	#     m : string - Method is always o.ca.all
 	#     i : string - Message id, the same as in a request
@@ -185,7 +205,7 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(canceled_order.o.i, str)
 		self.assertIsInstance(canceled_order.o.p, float)
 		self.assertIsInstance(canceled_order.o.oq, float)
-		self.assertIsInstance(canceled_order.o.osq float)
+		self.assertIsInstance(canceled_order.o.osq, float)
 		self.assertIsInstance(canceled_order.o.eq, float)
 		self.assertIsInstance(canceled_order.o.esq, float)
 		self.assertIsInstance(canceled_order.o.t, str)
@@ -211,9 +231,6 @@ class TestNiceHashWebsockets(unittest.TestCase):
 	#     }
 	# }
 
-	# TODO
-	MESSAGE_ID = None
-
 	def assert_is_order(self, order):
 		self.assertIsInstance(order, dict)
 		self.assertIsInstance(order.m, str)
@@ -222,7 +239,7 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(order.o.i, str)
 		self.assertIsInstance(order.o.p, float)
 		self.assertIsInstance(order.o.oq, float)
-		self.assertIsInstance(order.o.osq float)
+		self.assertIsInstance(order.o.osq, float)
 		self.assertIsInstance(order.o.eq, float)
 		self.assertIsInstance(order.o.esq, float)
 		self.assertIsInstance(order.o.t, str)
@@ -273,7 +290,7 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(sub_order_stream.o.i, str)
 		self.assertIsInstance(sub_order_stream.o.p, float)
 		self.assertIsInstance(sub_order_stream.o.oq, float)
-		self.assertIsInstance(sub_order_stream.o.osq float)
+		self.assertIsInstance(sub_order_stream.o.osq, float)
 		self.assertIsInstance(sub_order_stream.o.eq, float)
 		self.assertIsInstance(sub_order_stream.o.esq, float)
 		self.assertIsInstance(sub_order_stream.o.t, str)
@@ -329,12 +346,22 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(sub_order_book_stream, dict)
 		self.assertIsInstance(sub_order_book_stream.m, str)
 		self.assertIsInstance(sub_order_book_stream.t, float)
-		for b in sub_order_book_stream.b:
+		def test(b):
 			self.assertIsInstance(b.p, float)
 			self.assertIsInstance(b.q, float)
-		for s in sub_order_book_stream.s:
+		if TEST_LISTS:
+			for b in sub_order_book_stream.b:
+				test(b)
+			elif len(sub_order_book_stream.b) > 0:
+				test(sub_order_book_stream.b[0])
+		def test2(s):
 			self.assertIsInstance(s.p, float)
 			self.assertIsInstance(s.q, float)
+		if TEST_LISTS:
+			for s in sub_order_book_stream.s:
+				test2(s)
+			elif len(sub_order_book_stream.s) > 0:
+				test2(sub_order_book_stream.s[0])
 		# TODO
 		# add updated responses
 	# {
@@ -381,12 +408,18 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		self.assertIsInstance(sub_trade_stream, dict)
 		self.assertIsInstance(sub_trade_stream.m, str)
 		self.assertIsInstance(sub_trade_stream.t, list)
-		for t in sub_trade_stream.t:
+		def test(t):
 			self.assertIsInstance(t.d, str)
 			self.assertIsInstance(t.p, float)
 			self.assertIsInstance(t.q, float)
 			self.assertIsInstance(t.sq, float)
 			self.assertIsInstance(t.ts, int)
+		if TEST_LISTS:
+			for t in sub_trade_stream.t:
+				test(t)
+		elif len(sub_trade_stream.t) > 0:
+			test(sub_trade_stream.t[0])
+
 	# {
 	#     m : string - Method is t.s
 	#     t : [

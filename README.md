@@ -26,3 +26,11 @@ To use production just generate key the same way on https://www.nicehash.com and
 
 ### API docs
 Can be found here: https://docs.nicehash.com/
+
+### DEV environment
+
+Tested using python3.8. More notes on testing in changelog. Package is still under development as some API functionality is incomplete. 
+
+Install test dependencies: `python3.8 setup.py install -e [.dev]`
+Run some tests: `python3.8 -m unittest tests.test_nicehash_public`
+Run all tests: `python3.8 -m unittest discover -s ./tests`

@@ -13,7 +13,7 @@ setuptools.setup(
     description="NiceHash API",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['tests']), # Include all the python modules except `tests`.
     include_package_data=True,
     install_requires=[
             "requests"
@@ -40,3 +40,9 @@ setuptools.setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
 )
+
+    # entry_points={
+    #     'pytest11': [
+    #         'nicehash_python = nicehash_python.fixtures'
+    #     ]
+    # },

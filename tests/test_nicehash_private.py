@@ -1,85 +1,140 @@
 import unittest
 import os
+import time
 from dotenv import load_dotenv
 load_dotenv()
-# import pytest
 #
 from python import nicehash
 
-ADDRESS = os.environ.get("TEST_ADDRESS")
+ADDRESS = os.environ.get("TEST_ADDRESS") # needs to be Nicehash BTC address with active miners
 HOST = os.environ.get("TEST_HOST")
 ORGANIZATION_ID = os.environ.get("TEST_ORGANIZATION_ID")
 KEY = os.environ.get("TEST_KEY")
 SECRET = os.environ.get("TEST_SECRET")
-#
-ACTIVITY_TYPES = nicehash.ACTIVITY_TYPES[0]
+###
+# Parameters for testing
+###
+# ACTIVITY_TYPES = nicehash.ACTIVITY_TYPES[0]
 ALGORITHM = nicehash.ALGORITHMS[0]
 ALGORITHM_CODES = nicehash.ALGORITHM_CODES
 ALGORITHM_CODE = ALGORITHM_CODES[0]
+AMOUNT = 1
+CURRENCY = "TBTC"
+LIMIT = 0.0001
 MARKET = nicehash.MARKETS[0]
+MARKET_LONG = nicehash.MARKETS_LONG[0]
+MARKET_SYMBOLS = ["TETHTBTC", "TBTCTUSDT", "TBCHTBTC"]
+MARKET_SYMBOL = MARKET_SYMBOLS[0]
 RESOLUTION = nicehash.RESOLUTIONS[0]
 OP = nicehash.OPS[0]
 # ORDER_RELATION = nicehash.ORDER_RELATION[0]
+EXCHANGE_ORDER_TYPE = nicehash.EXCHANGE_ORDER_TYPES[0]
+HASHPOWER_ORDER_TYPE = nicehash.HASHPOWER_ORDER_TYPES[0]
+PAGE = 0
+PRICE = 0.0001
+RESULTS_LIMIT = 100
+QUANTITY = 1
+SEC_QUANTITY = 0
+min_SEC_QUANTITY = 0
+RIG_ACTION = nicehash.RIG_ACTIONS[0]
+SIZE = 100
 SORT_PARAMETER = nicehash.SORT_PARAMETERS[0]
 SORT_DIRECTION = nicehash.SORT_DIRECTIONS[0]
 SORT_OPTION = nicehash.SORT_OPTIONS[0]
 SIDE = nicehash.SIDES[0]
 STATUS = nicehash.STATUSES[0]
-TX_TYP = nicehash.TX_TYPES[0]
-WALLET_TYPE = nicehash.WALLET_TYPES[0]
-
-import time
+TIMESTAMP = int(time.time())
+# TRANSACTION_TYPE = nicehash.TX_TYPES[0]
+# WALLET_TYPE = nicehash.WALLET_TYPES[0]
+WITHDRAWAL_AMOUNT = 1
+#
 FROM_S = int(time.time()) - 300
 TO_S = FROM_S
-TIMESTAMP = int(time.time())
-
-ADDRESS = None
-CURRENCY = "TBTC"
-MARKET_SYMBOLS = ["TETHTBTC", "TBTCTUSDT", "TBCHTBTC"]
-MARKET_SYMBOL = MARKET_SYMBOLS[0]
-
-AMOUNT = 1
-LIMIT = 0.0001
-RESULTS_LIMIT = 100
-RIG_ACTION = nicehash.RIG_ACTIONS[0]
+# TODO
+# have a mining rig on test net?
+# or use public and get mining rig ID
 RIG_ID = None
+# TODO
+# create group name on test net?
+# create group name on live?
+RIG_GROUP_NAME = None
 ORDER_ID = None
-WITHDRAWAL_ID = None
-WITHDRAWAL_AMOUNT = 1
 TRANSACTION_ID = None
-PRICE = 0.0001
+WITHDRAWAL_ID = None
+# TODO
+# any pool stuff
 POOL_ID = None
 POOL_NAME = None
-POOL_HOST = None
 POOL_PORT = 3443
+POOL_HOST = None
 POOL_USERNAME = None
 POOL_PASSWORD = None
-ORDER_TYPE = nicehash.ORDER_TYPES[0]
-QUANTITY = 1
-SEC_QUANTITY = 0
-min_SEC_QUANTITY = 0
-PAGE = 0
-SIZE = 100
-
+# TODO
 WHITELISTED_WITHDRAWAL_ADDRESS_ID = None
+###
 
+# test values in lists
 TEST_LISTS = False
+# For selectively mass testing, ignoring tests that fail because rigs or orders don't exist to check
+TESTING_URIS = [
+	"/main/api/v2/accounting/account2/{currency}",
+	"/main/api/v2/accounting/accounts2",
+	"/main/api/v2/accounting/activity/{currency}",
+	"/main/api/v2/accounting/depositAddresses",
+	"/main/api/v2/accounting/deposits/{currency}",
+	"/main/api/v2/accounting/deposits2/{currency}/{id}",
+	"/main/api/v2/accounting/exchange/{id}/trades",
+	"/main/api/v2/accounting/hashpower/{id}/transactions",
+	"/main/api/v2/accounting/hashpowerEarnings/{currency}",
+	"/main/api/v2/accounting/transaction/{currency}/{transactionId}",
+	"/main/api/v2/accounting/transactions/{currency}",
+	"/main/api/v2/accounting/withdrawal",
+	"/main/api/v2/accounting/withdrawal/{currency}/{id}",
+	"/main/api/v2/accounting/withdrawal2/{currency}/{id}",
+	"/main/api/v2/accounting/withdrawalAddress/{id}",
+	"/main/api/v2/accounting/withdrawalAddresses",
+	"/main/api/v2/accounting/withdrawals/{currency}",
+	"/main/api/v2/hashpower/myOrders",
+	"/main/api/v2/hashpower/order",
+	"/main/api/v2/hashpower/order/{id}",
+	"/main/api/v2/hashpower/order/{id}",
+	"/main/api/v2/hashpower/order/{id}/refill",
+	"/main/api/v2/hashpower/order/{id}/stats",
+	"/main/api/v2/hashpower/order/{id}/updatePriceAndLimit",
+	"/main/api/v2/hashpower/orders/calculateEstimateDuration",
+	"/main/api/v2/mining/groups/list",
+	"/main/api/v2/mining/miningAddress",
+	"/main/api/v2/mining/rig/stats/algo",
+	"/main/api/v2/mining/rig/stats/unpaid",
+	"/main/api/v2/mining/rig2/{rigId}",
+	"/main/api/v2/mining/rigs/activeWorkers",
+	"/main/api/v2/mining/rigs/payouts",
+	"/main/api/v2/mining/rigs/stats/algo",
+	"/main/api/v2/mining/rigs/stats/unpaid",
+	"/main/api/v2/mining/rigs/status2",
+	"/main/api/v2/mining/rigs2",
+	"/main/api/v2/pool",
+	"/main/api/v2/pool/{poolId}",
+	"/main/api/v2/pool/{poolId}",
+	"/main/api/v2/pools",
+	"/main/api/v2/pools/verify",
+	"/exchange/api/v2/info/cancelAllOrders",
+	"/exchange/api/v2/info/fees/status",
+	"/exchange/api/v2/info/myOrder",
+	"/exchange/api/v2/info/myOrders",
+	"/exchange/api/v2/info/myTrades",
+	"/exchange/api/v2/info/orderTrades",
+	"/exchange/api/v2/order",
+	"/exchange/api/v2/order"
+]
 VERBOSE = True
 
-
-# @pytest.fixture(scope='module')
-# def client():
-#     return None
-#     # return NiceHashPrivateApi(host, organisation_id, key, secret)
-
-
-# @pytest.mark.usefixtures('client')
-# class TestClient(object):
-
-#     def test(self, client):
-#         # TODO!
-#         assert True
-
+def check_test_paramters(parameters):
+	for p in parameters:
+		if "algorithm_code" in str(p):
+			if (not ALGORITHM_CODES or len(ALGORITHM_CODES) == 0 or not ALGORITHM_CODE) or (not MARKET_SYMBOLS or len(MARKET_SYMBOLS) == 0 or not MARKET_SYMBOL):
+				raise Exception("Missing test value: {}".format(p))
+		if not globals()[p.upper()]: raise Exception("Missing test value: {}".format(p))
 
 class TestNiceHashPrivate(unittest.TestCase):
 
@@ -110,7 +165,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/account2/{currency}
 
+	@unittest.skipIf("/main/api/v2/accounting/account2/{currency}" not in TESTING_URIS, "skipping successful")
 	def test_accounts_for_currency(self):
+		check_test_paramters(["currency"])
 		accounts_for_currency = self.private_api.get_accounts_for_currency(CURRENCY)
 		# print(accounts_for_currency)
 		self.assertIsInstance(accounts_for_currency, dict)
@@ -156,6 +213,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/accounts2
 
+	@unittest.skipIf("/main/api/v2/accounting/accounts2" not in TESTING_URIS, "skipping successful")
 	def test_accounts(self):
 		accounts = self.private_api.get_accounts()
 		# print(accounts)
@@ -213,6 +271,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(currency)
 		elif len(accounts["currencies"]) > 0:
 		 	test(accounts["currencies"][0])
+		else: raise Exception("Empty return data for testing; missing currencies")
 	# {
 	# 	total : {
 	# 		active : boolean - Active
@@ -254,8 +313,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/activity/{currency}
 
+	@unittest.skipIf("/main/api/v2/accounting/activity/{currency}" not in TESTING_URIS, "skipping successful")
 	def test_account_activity(self):
-		if not CURRENCY: return
+		check_test_paramters(["currency"])
 		account_activity = self.private_api.get_account_activity(CURRENCY)
 		# print(account_activity)
 		self.assertIsInstance(account_activity, list)
@@ -272,6 +332,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(activity)
 		elif len(account_activity) > 0:
 			test(account_activity[0])
+		else: raise Exception("Empty return data for testing; missing account activity")
 	# [
 	# 	{
 	# 		time : integer - Activity time (used for sorting)
@@ -285,8 +346,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/depositAddresses
 
+	@unittest.skipIf("/main/api/v2/accounting/depositAddresses" not in TESTING_URIS, "skipping successful")
 	def test_deposit_addresses(self):
-		if not CURRENCY: return
+		check_test_paramters(["currency"])
 		deposit_addresses = self.private_api.get_deposit_addresses(CURRENCY)
 		# print(deposit_addresses)
 		self.assertIsInstance(deposit_addresses, dict)
@@ -311,6 +373,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(list_)
 		elif len(deposit_addresses["list"]) > 0:
 			test(deposit_addresses["list"][0])
+		else: raise Exception("Empty return data for testing; missing deposit addresses")
 	# {
 	# 	list : [
 	# 		{
@@ -329,8 +392,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/deposits/{currency}
 
+	@unittest.skipIf("/main/api/v2/accounting/deposits/{currency}" not in TESTING_URIS, "skipping successful")
 	def test_deposits_for_currency(self):
-		if not CURRENCY: return
+		check_test_paramters(["currency"])
 		deposits_for_currency = self.private_api.get_deposits_for_currency(CURRENCY)
 		# print(deposits_for_currency)
 		self.assertIsInstance(deposits_for_currency, dict)
@@ -354,6 +418,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(deposit)
 		elif len(deposits_for_currency["list"]) > 0:
 			test(deposits_for_currency["list"][0])
+		else: raise Exception("Empty return data for testing; missing deposits for currency")
 		try:
 			self.assertIsInstance(deposits_for_currency["pagination"], dict)
 			self.assert_is_number(deposits_for_currency["pagination"]["size"])
@@ -388,8 +453,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/deposits2/{currency}/{id}
 
+	@unittest.skipIf("/main/api/v2/accounting/deposits2/{currency}/{id}" not in TESTING_URIS, "skipping successful")
 	def test_deposits_for_currency_by_id(self):
-		if not CURRENCY or not TRANSACTION_ID: return
+		check_test_paramters(["currency", "transaction_id"])
 		deposits_for_currency_by_id = self.private_api.get_deposits_for_currency_by_id(CURRENCY, TRANSACTION_ID)
 		# print(deposits_for_currency_by_id)
 		self.assertIsInstance(deposits_for_currency_by_id, dict)
@@ -422,9 +488,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/exchange/{id}/trades
 
+	@unittest.skipIf("/main/api/v2/accounting/exchange/{id}/trades" not in TESTING_URIS, "skipping successful")
 	def test_order_transactions_by_id(self):
-		if not MARKET or not TRANSACTION_ID: return
-		order_transactions_by_id = self.private_api.get_order_transactions_by_id(TRANSACTION_ID, MARKET)
+		check_test_paramters(["market_symbol", "transaction_id"])
+		order_transactions_by_id = self.private_api.get_order_transactions_by_id(TRANSACTION_ID, MARKET_SYMBOL)
 		# print(order_transactions_by_id)
 		self.assertIsInstance(order_transactions_by_id, dict)
 		self.assertIsInstance(order_transactions_by_id["trades"], list)
@@ -439,6 +506,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(trade)
 		elif len(order_transactions_by_id["trades"]) > 0:
 			test(order_transactions_by_id["trades"][0])
+		else: raise Exception("Empty return data for testing; missing trades")
 	# {
 	# 	trades : [
 	# 		{
@@ -452,8 +520,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/hashpower/{id}/transactions
 
+	@unittest.skipIf("/main/api/v2/accounting/hashpower/{id}/transactions" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_order_transactions_by_id(self):
-		if not TRANSACTION_ID: return
+		check_test_paramters(["transaction_id"])
 		hashpower_order_transactions_by_id = self.private_api.get_hashpower_order_transactions_by_id(TRANSACTION_ID)
 		# print(hashpower_order_transactions_by_id)
 		self.assertIsInstance(hashpower_order_transactions_by_id, dict)
@@ -468,6 +537,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(transaction)
 		elif len(hashpower_order_transactions_by_id["transactions"]) > 0:
 			test(hashpower_order_transactions_by_id["transactions"][0])
+		else: raise Exception("Empty return data for testing; missing transactions")
 	# {
 	# 	transactions : [
 	# 		{
@@ -480,8 +550,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/hashpowerEarnings/{currency}
 
+	@unittest.skipIf("/main/api/v2/accounting/hashpowerEarnings/{currency}" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_earnings_for_currency(self):
-		if not CURRENCY: return
+		check_test_paramters(["currency"])
 		hashpower_earnings_for_currency = self.private_api.get_hashpower_earnings_for_currency(CURRENCY)
 		# print(hashpower_earnings_for_currency)
 		self.assertIsInstance(hashpower_earnings_for_currency, dict)
@@ -505,6 +576,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(transaction)
 		elif len(hashpower_earnings_for_currency["list"]) > 0:
 			test(hashpower_earnings_for_currency["list"][0])
+		else: raise Exception("Empty return data for testing; missing hashpower earnings for currencies")
 		try:
 			self.assertIsInstance(hashpower_earnings_for_currency["pagination"], dict)
 			self.assert_is_number(hashpower_earnings_for_currency["pagination"]["size"])
@@ -539,8 +611,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/transaction/{currency}/{transactionId}
 
+	@unittest.skipIf("/main/api/v2/accounting/transaction/{currency}/{transactionId}" not in TESTING_URIS, "skipping successful")
 	def test_transaction_for_currency_by_id(self):
-		if not CURRENCY or not TRANSACTION_ID: return
+		check_test_paramters(["currency", "transaction_id"])
 		transaction_for_currency_by_id = self.private_api.get_transaction_for_currency_by_id(CURRENCY, TRANSACTION_ID)
 		# print(transaction_for_currency_by_id)
 		self.assertIsInstance(transaction_for_currency_by_id, dict)
@@ -584,8 +657,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/transactions/{currency}
 
+	@unittest.skipIf("/main/api/v2/accounting/transactions/{currency}" not in TESTING_URIS, "skipping successful")
 	def test_transactions_for_currency(self):
-		if not CURRENCY: return
+		check_test_paramters(["currency"])
 		transactions_for_currency = self.private_api.get_transactions_for_currency(CURRENCY)
 		# print(transactions_for_currency)
 		self.assertIsInstance(transactions_for_currency, dict)
@@ -609,6 +683,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(transaction)
 		elif len(transactions_for_currency["list"]) > 0:
 			test(transactions_for_currency["list"][0])
+		else: raise Exception("Empty return data for testing; missing transactions for currencies")
 		try:
 			self.assertIsInstance(transactions_for_currency["pagination"], dict)
 			self.assert_is_number(transactions_for_currency["pagination"]["size"])
@@ -643,8 +718,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/withdrawal
 
+	@unittest.skipIf("/main/api/v2/accounting/withdrawal" not in TESTING_URIS, "skipping successful")
 	def test_withdraw_request(self):
-		if not CURRENCY or not WITHDRAWAL_AMOUNT or not WHITELISTED_WITHDRAWAL_ADDRESS_ID: return
+		check_test_paramters(["currency", "withdrawal_amount", "whitelisted_withdrawal_address_id"])
 		withdrawal = self.private_api.withdraw_request(CURRENCY, WITHDRAWAL_AMOUNT, WHITELISTED_WITHDRAWAL_ADDRESS_ID)
 		# print(withdrawal)
 		self.assertIsInstance(withdrawal, dict)
@@ -655,8 +731,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/withdrawal/{currency}/{id}
 
+	@unittest.skipIf("/main/api/v2/accounting/withdrawal/{currency}/{id}" not in TESTING_URIS, "skipping successful")
 	def test_delete_withdrawal(self):
-		if not CURRENCY or not WITHDRAWAL_ID: return
+		check_test_paramters(["currency", "withdrawal_id"])
 		delete_withdrawal = self.private_api.delete_withdrawal(CURRENCY, WITHDRAWAL_ID)
 		# print(delete_withdrawal)
 		self.assertIsInstance(delete_withdrawal, dict)
@@ -671,8 +748,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/withdrawal2/{currency}/{id}
 
+	@unittest.skipIf("/main/api/v2/accounting/withdrawal2/{currency}/{id}" not in TESTING_URIS, "skipping successful")
 	def test_withdrawal_for_currency_by_id(self):
-		if not CURRENCY or not WITHDRAWAL_ID: return
+		check_test_paramters(["currency", "withdrawal_id"])
 		withdrawal_for_currency_by_id = self.private_api.get_withdrawal_for_currency_by_id(CURRENCY, WITHDRAWAL_ID)
 		# print(withdrawal_for_currency_by_id)
 		self.assertIsInstance(withdrawal_for_currency_by_id, dict)
@@ -701,8 +779,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/withdrawalAddress/{id}
 
+	@unittest.skipIf("/main/api/v2/accounting/withdrawalAddress/{id}" not in TESTING_URIS, "skipping successful")
 	def test_withdrawal_address_by_id(self):
-		if not WITHDRAWAL_ID: return
+		check_test_paramters(["withdrawal_id"])
 		withdrawal_address_by_id = self.private_api.get_withdrawal_address_by_id(WITHDRAWAL_ID)
 		# print(withdrawal_address_by_id)
 		self.assertIsInstance(withdrawal_address_by_id, dict)
@@ -718,6 +797,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(withdrawal)
 		elif len(withdrawal["type"]["supportedCurrencies"]) > 0:
 			test(withdrawal["type"]["supportedCurrencies"][0])
+		else: raise Exception("Empty return data for testing; missing withdrawal supported currencies")
 		self.assertIsInstance(withdrawal["name"], str)
 		self.assertIsInstance(withdrawal["address"], str)
 		self.assertIsInstance(withdrawal["createdTs"], str)
@@ -754,8 +834,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/withdrawalAddresses
 
+	@unittest.skipIf("/main/api/v2/accounting/withdrawalAddresses" not in TESTING_URIS, "skipping successful")
 	def test_withdrawal_addresses(self):
-		if not CURRENCY: return
+		check_test_paramters(["currency"])
 		withdrawal_addresses = self.private_api.get_withdrawal_addresses(CURRENCY)
 		# print(withdrawal_addresses)  
 		self.assertIsInstance(withdrawal_addresses, dict)
@@ -790,6 +871,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(withdrawal)
 		elif len(withdrawal_addresses["list"]) > 0:
 			test(withdrawal_addresses["list"][0])
+		else: raise Exception("Empty return data for testing; missing withdrawal addresses")
 		try:
 			self.assertIsInstance(withdrawal_addresses["pagination"], dict)
 			self.assert_is_number(withdrawal_addresses["pagination"]["size"])
@@ -830,8 +912,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/accounting/withdrawals/{currency}
 
+	@unittest.skipIf("/main/api/v2/accounting/withdrawals/{currency}" not in TESTING_URIS, "skipping successful")
 	def test_withdrawals_for_currency(self):
-		if not CURRENCY or not STATUS or not OP or not TIMESTAMP or not PAGE or not SIZE: return
+		check_test_paramters(["currency", "op", "page", "size", "status", "timestamp"])
 		withdrawals_for_currency = self.private_api.get_withdrawals_for_currency(CURRENCY, [STATUS], OP, TIMESTAMP, PAGE, SIZE)
 		# print(withdrawals_for_currency)
 		self.assertIsInstance(withdrawals_for_currency, dict)
@@ -855,6 +938,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(withdrawal)
 		elif len(withdrawals_for_currency["list"]) > 0:
 			test(withdrawals_for_currency["list"][0])
+		else: raise Exception("Empty return data for testing; missing withdrawals for currency")
 	# {
 	# 	list : [
 	# 		{
@@ -885,8 +969,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/hashpower/myOrders
 
+	@unittest.skipIf("/main/api/v2/hashpower/myOrders" not in TESTING_URIS, "skipping successful")
 	def test_active_orders(self):
-		if not ALGORITHM or not MARKET or not LIMIT: return
+		check_test_paramters(["algorithm", "market", "results_limit"])
 		active_orders = self.private_api.get_my_active_orders(OP, RESULTS_LIMIT, algorithm=ALGORITHM, market=MARKET)
 		# print(active_orders)
 		self.assertIsInstance(active_orders, dict)
@@ -898,6 +983,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(active_order)
 		elif len(active_orders["list"]) > 0:
 			test(active_orders["list"][0])
+		else: raise Exception("Empty return data for testing; missing active orders")
 	# {
 	# 	list : [
 	# 		{
@@ -951,13 +1037,11 @@ class TestNiceHashPrivate(unittest.TestCase):
 	# 	]
 	# }
 
-	# TODO
-	ORDER_ID = None
-
 	# /main/api/v2/hashpower/order
 
+	@unittest.skipIf("/main/api/v2/hashpower/order" not in TESTING_URIS, "skipping successful")
 	def test_standard_hashpower_order(self):
-		if not MARKET or not not ALGORITHM or not not PRICE or not not LIMIT or not not AMOUNT or not not POOL_ID: return
+		check_test_paramters(["algorithm", "market", "limit", "price", "amount", "pool_id"])
 		standard_hashpower_order = self.private_api.create_standard_hashpower_order(MARKET, ALGORITHM, PRICE, LIMIT, AMOUNT, POOL_ID)
 		print(standard_hashpower_order)
 		self.assert_is_order_response(standard_hashpower_order)
@@ -1021,9 +1105,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 	# 	liquidation : string - Order liquidation
 	# }
 
-
+	@unittest.skipIf("/main/api/v2/hashpower/order" not in TESTING_URIS, "skipping successful")
 	def test_fixed_hashpower_order(self):
-		if not MARKET or not not ALGORITHM or not not PRICE or not not LIMIT or not not AMOUNT or not not POOL_ID: return
+		check_test_paramters(["algorithm", "market", "limit", "price", "amount", "pool_id"])
 		fixed_hashpower_order = self.private_api.create_fixed_hashpower_order(MARKET, ALGORITHM, PRICE, LIMIT, AMOUNT, POOL_ID)
 		# print(fixed_hashpower_order)
 		self.assert_is_order_response(fixed_hashpower_order)
@@ -1087,11 +1171,11 @@ class TestNiceHashPrivate(unittest.TestCase):
 	# 	liquidation : string - Order liquidation
 	# }
 
-
 	# /main/api/v2/hashpower/order/{id}
 
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}" not in TESTING_URIS, "skipping successful")
 	def test_order_details(self):
-		if not ORDER_ID: return
+		check_test_paramters(["order_id"])
 		order_details = self.private_api.get_order_details(ORDER_ID)
 		# print(order_details)
 		self.assert_is_order_response(order_details)
@@ -1158,8 +1242,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/hashpower/order/{id}
 
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_order(self):
-		if not ORDER_ID: return
+		check_test_paramters(["order_id"])
 		hashpower_order = self.private_api.cancel_hashpower_order(ORDER_ID)
 		# print(hashpower_order)
 		self.assert_is_order_response(hashpower_order)
@@ -1226,8 +1311,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/hashpower/order/{id}/refill
 
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}/refill" not in TESTING_URIS, "skipping successful")
 	def test_hashpower_order(self):
-		if not ORDER_ID or not AMOUNT: return
+		check_test_paramters(["order_id", "amount"])
 		hashpower_order = self.private_api.refill_hashpower_order(ORDER_ID, AMOUNT)
 		# print(hashpower_order)
 		self.assert_is_order_response(hashpower_order)
@@ -1293,8 +1379,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/hashpower/order/{id}/stats
 
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}/stats" not in TESTING_URIS, "skipping successful")
 	def test_order_statistics(self):
-		if not ORDER_ID: return
+		check_test_paramters(["order_id"])
 		order_statistics = self.private_api.get_order_statistics(ORDER_ID)
 		# print(order_statistics)
 		self.assertIsInstance(order_statistics, dict)
@@ -1308,6 +1395,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(col)
 		elif len(order_statistics["columns"]) > 0:
 			test(order_statistics["columns"][0])
+		else: raise Exception("Empty return data for testing; missing order statistics columns")
 		self.assertIsInstance(order_statistics["data"], list)
 		def test2(data):
 			self.assertIsInstance(data, list)
@@ -1323,6 +1411,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test2(data)
 		elif len(order_statistics["data"]) > 0:
 			test2(order_statistics["data"][0])
+		else: raise Exception("Empty return data for testing; missing order statistics data")
 	# {
 	# 	displayMarketFactor : string - Unit for market factor
 	# 	marketFactor : number - Market factor
@@ -1338,23 +1427,26 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/hashpower/order/{id}/updatePriceAndLimit
 
-
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}/updatePriceAndLimit" not in TESTING_URIS, "skipping successful")
 	def test_set_price_hashpower_order(self):
-		if not ORDER_ID or not PRICE or not ALGORITHM: return
+		check_test_paramters(["order_id", "algorithm", "price"])
 		hashpower_order = self.private_api.set_price_hashpower_order(ORDER_ID, PRICE, ALGORITHM)
 		# print(hashpower_order)
 		self.assert_is_order_response(order)
+
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}/updatePriceAndLimit" not in TESTING_URIS, "skipping successful")
 	def test_set_limit_hashpower_order(self):
-		if not ORDER_ID or not PRICE or not ALGORITHM: return
+		check_test_paramters(["order_id", "algorithm", "price"])
 		hashpower_order = self.private_api.set_limit_hashpower_order(ORDER_ID, LIMIT, ALGORITHM)
 		# print(hashpower_order)
 		self.assert_is_order_response(order)
+
+	@unittest.skipIf("/main/api/v2/hashpower/order/{id}/updatePriceAndLimit" not in TESTING_URIS, "skipping successful")
 	def test_set_price_and_limit_hashpower_order(self):
-		if not ORDER_ID or not PRICE or not LIMIT or not ALGORITHM: return
+		check_test_paramters(["order_id", "algorithm", "price", "limit"])
 		hashpower_order = self.private_api.set_price_and_limit_hashpower_order(ORDER_ID, PRICE, LIMIT, ALGORITHM)
 		# print(hashpower_order)
 		self.assert_is_order_response(order)
-
 
 	def assert_is_order_response(self, order):
 		self.assertIsInstance(order, dict)
@@ -1415,6 +1507,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(bridge)
 		elif len(order["bridges"]) > 0:
 			test(order["bridges"][0])
+		else: raise Exception("Empty return data for testing; missing order bridges")
 		self.assertIsInstance(order["liquidation"], str)
 	# {
 	# 	id : string - Id of hashpower order
@@ -1478,9 +1571,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/hashpower/orders/calculateEstimateDuration
 
+	@unittest.skipIf("/main/api/v2/hashpower/orders/calculateEstimateDuration" not in TESTING_URIS, "skipping successful")
 	def test_order_duration(self):
-		if not ALGORITHM or not ORDER_TYPE or not PRICE or not LIMIT or not AMOUNT: return
-		order_duration = self.private_api.estimate_order_duration(ALGORITHM, ORDER_TYPE, PRICE, LIMIT, AMOUNT)
+		check_test_paramters(["algorithm", "hashpower_order_type", "price", "limit", "amount"])
+		order_duration = self.private_api.estimate_order_duration(ALGORITHM, HASHPOWER_ORDER_TYPE, PRICE, LIMIT, AMOUNT)
 		# print(order_duration)
 		self.assertIsInstance(order_duration, dict)
 		self.assert_is_number(order_duration["estimateDurationInSeconds"])
@@ -1492,33 +1586,39 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/groups/list
 
+	@unittest.skipIf("/main/api/v2/mining/groups/list" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
 	def test_groups(self):
 		groups = self.private_api.get_groups()
 		# print(groups)
 		self.assertIsInstance(groups, dict)
-		try:
-			self.assertIsInstance(groups["rigs"], list)
-			def test(rig):
-				self.assertIsInstance(rig["rigId"], str)
-				self.assertIsInstance(rig["name"], str)
-				self.assertIsInstance(rig["status"], str)
-				self.assertIsInstance(rig["powerMode"], str)
-				self.assertIsInstance(rig["notifications"], list)
-				def test2(n):
-					self.assertIsInstance(n, str)
-				if TEST_LISTS:
-					for n in rig["notifications"]:
-						test2(n)
-				elif len(rig["notifications"]) > 0:
-					test2(rig["notifications"][0])
-				self.assert_is_number(rig["totalDevices"])
-				self.assert_is_number(rig["activeDevices"])
+		self.assertIsInstance(groups["groups"], dict)
+		if len(groups["groups"].keys()) == 0:
+			raise Exception("Empty return data for testing; must mine with rig and create group online")
+		# try:
+		self.assertIsInstance(groups["rigs"], list)
+		def test(rig):
+			self.assertIsInstance(rig["rigId"], str)
+			self.assertIsInstance(rig["name"], str)
+			self.assertIsInstance(rig["status"], str)
+			self.assertIsInstance(rig["powerMode"], str)
+			self.assertIsInstance(rig["notifications"], list)
+			def test2(n):
+				self.assertIsInstance(n, str)
 			if TEST_LISTS:
-				for rig in groups["rigs"]:
-					test(rig)
-			elif len(groups["rigs"]) > 0:
-				test(groups["rigs"][0])
-		except KeyError: pass
+				for n in rig["notifications"]:
+					test2(n)
+			elif len(rig["notifications"]) > 0:
+				test2(rig["notifications"][0])
+			self.assert_is_number(rig["totalDevices"])
+			self.assert_is_number(rig["activeDevices"])
+		if TEST_LISTS:
+			for rig in groups["rigs"]:
+				test(rig)
+		elif len(groups["rigs"]) > 0:
+			test(groups["rigs"][0])
+		else: raise Exception("Empty return data for testing; missing rig groups")
+		# except KeyError: pass
 		self.assert_is_number(groups["totalRigs"])
 		self.assert_is_number(groups["miningRigs"])
 		self.assertIsInstance(groups["groupPowerMode"], str)
@@ -1551,6 +1651,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/miningAddress
 
+	@unittest.skipIf("/main/api/v2/mining/miningAddress" not in TESTING_URIS, "skipping successful")
 	def test_mining_address(self):
 		mining_address = self.private_api.get_mining_address()
 		# print(mining_address)
@@ -1562,8 +1663,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rig/stats/algo
 
+	@unittest.skipIf("/main/api/v2/mining/rig/stats/algo" not in TESTING_URIS, "skipping successful")
 	def test_rig_algo_statst(self):
-		if not RIG_ID: return
+		check_test_paramters(["rig_id"])
 		rig_algo_stats = self.private_api.get_rig_algo_stats(RIG_ID)
 		# print(rig_algo_stats)
 		self.assertIsInstance(rig_algo_stats, dict)
@@ -1574,6 +1676,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(col)
 		elif len(rig_algo_stats["columns"]) > 0:
 			test(rig_algo_stats["columns"][0])
+		else: raise Exception("Empty return data for testing; missing algo statistics columns")
 		def test2(data):
 			self.assertIsInstance(data, list)
 			def test3(stat):
@@ -1588,6 +1691,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test2(data)
 		elif len(rig_algo_stats["data"]) > 0:
 			test2(rig_algo_stats["data"][0]) 
+		else: raise Exception("Empty return data for testing; missing algo statistics data")
 	# {
 	# 	columns : [
 	# 		string - Column definition of statistical streams
@@ -1601,8 +1705,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rig/stats/unpaid
 
+	@unittest.skipIf("/main/api/v2/mining/rig/stats/unpaid" not in TESTING_URIS, "skipping successful")
 	def test_rig_unpaid_stats(self):
-		if not RIG_ID: return
+		check_test_paramters(["rig_id"])
 		rig_unpaid_stats = self.private_api.get_rig_unpaid_stats(RIG_ID)
 		# print(rig_unpaid_stats)
 		self.assertIsInstance(rig_unpaid_stats, dict)
@@ -1613,6 +1718,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(col)
 		elif len(rig_unpaid_stats["columns"]) > 0:
 			test(rig_unpaid_stats["columns"][0])
+		else: raise Exception("Empty return data for testing; missing unpaid rig statistical columns")
 		def test2(data):
 			self.assertIsInstance(data, list)
 			def test3(stat):
@@ -1627,6 +1733,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test2(data)
 		elif len(rig_unpaid_stats["data"]) > 0:
 			test2(rig_unpaid_stats["data"][0])
+		else: raise Exception("Empty return data for testing; missing unpaid rig statistical data")
 # {
 # 	columns : [
 # 		string - Column definition of statistical streams
@@ -1640,8 +1747,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rig2/{rigId}
 
+	@unittest.skipIf("/main/api/v2/mining/rig2/{rigId}" not in TESTING_URIS, "skipping successful")
 	def test_rig_by_id(self):
-		if not RIG_ID: return
+		check_test_paramters(["rig_id"])
 		rig = self.private_api.get_rig_by_id(RIG_ID)
 		# print(rig)
 		self.assertIsInstance(rig, dict)
@@ -1661,6 +1769,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(n)
 		elif len(rig["notifications"]) > 0:
 			test(rig["notifications"][0])
+		else: raise Exception("Empty return data for testing; missing rig notifications")
 		self.assertIsInstance(rig["softwareVersions"], str)
 		self.assertIsInstance(rig["devices"], list)
 		def test2(device):
@@ -1692,6 +1801,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 					test3(speed)
 			elif len(device["speeds"]) > 0:
 				test3(device["speeds"][0])
+			else: raise Exception("Empty return data for testing; missing device speeds")
 			self.assertIsInstance(device["intensity"], dict)
 			self.assertIsInstance(device["intensity"]["enumName"], str)
 			self.assertIsInstance(device["intensity"]["description"], str)
@@ -1701,6 +1811,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test2(device)
 		elif len(rig["devices"]) > 0:
 			test2(rig["devices"][0])
+		else: raise Exception("Empty return data for testing; missing rig devices")
 		self.assertIsInstance(rig["cpuMiningEnabled"], bool)
 		self.assertIsInstance(rig["cpuExists"], bool)
 		self.assertIsInstance(rig["stats"], list)
@@ -1729,6 +1840,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test4(stat)
 		elif len(rig["stats"]) > 0:
 			test4(rig["stats"][0])
+		else: raise Exception("Empty return data for testing; missing rig stats")
 		self.assert_is_number(rig["profitability"])
 		self.assert_is_number(rig["localProfitability"])
 		self.assertIsInstance(rig["rigPowerMode"], str)
@@ -1813,8 +1925,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rigs/activeWorkers
 
+	@unittest.skipIf("/main/api/v2/mining/rigs/activeWorkers" not in TESTING_URIS, "skipping successful")
 	def test_active_workers(self):
-		active_workers = self.private_api.get_active_workers()
+		check_test_paramters(["address", "page", "size", "sort_parameter", "sort_direction"])
+		active_workers = self.private_api.get_active_workers(ADDRESS, size=SIZE, page=PAGE, sortParameter=SORT_PARAMETER, sortDirection=SORT_DIRECTION)
 		# print(active_workers)
 		self.assertIsInstance(active_workers, dict)
 		self.assert_is_number(active_workers["pagination"]["size"])
@@ -1847,6 +1961,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(worker)
 		elif len(active_workers["workers"]) > 0:
 			test(active_workers["workers"][0])
+		else: raise Exception("Empty return data for testing; missing active workers")
 	# {
 	# 	pagination : {
 	# 		size : integer - Page size
@@ -1881,6 +1996,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rigs/payouts
 
+	@unittest.skipIf("/main/api/v2/mining/rigs/payouts" not in TESTING_URIS, "skipping successful")
 	def test_payouts(self):
 		payouts = self.private_api.get_payouts()
 		# print(payouts)
@@ -1905,6 +2021,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(payout)
 		elif len(payouts["list"]) > 0:
 			test(payouts["list"][0])
+		else: raise Exception("Empty return data for testing; missing payouts")
 	# {
 	# 	list : [
 	# 		{
@@ -1933,8 +2050,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rigs/stats/algo
 
+	@unittest.skipIf("/main/api/v2/mining/rigs/stats/algo" not in TESTING_URIS, "skipping successful")
 	def test_algo_statistics(self):
-		if not ALGORITHM_CODES or not len(ALGORITHM_CODES) == 0 or not ALGORITHM_CODE: return
+		check_test_paramters(["algorithm_codes", "algorithm_code"])
 		if TEST_LISTS:
 			for algorithm in ALGORITHM_CODES:
 				algo_statistics = self.private_api.get_algo_statistics(algorithm)
@@ -1949,6 +2067,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(col)
 		elif len(algo_statistics["columns"]) > 0:
 			test(algo_statistics["columns"][0])
+		else: raise Exception("Empty return data for testing; missing algo statistics columns")
 		def test2(data):
 			self.assertIsInstance(data, list)
 			def test3(stat):
@@ -1963,6 +2082,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test2(data)
 		elif len(algo_statistics["data"]) > 0:
 			test2(algo_statistics["data"][0])
+		else: raise Exception("Empty return data for testing; missing algo statistics data")
 	# {
 	# 	columns : [
 	# 		string - Column definition of statistical streams
@@ -1976,6 +2096,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rigs/stats/unpaid
 
+	@unittest.skipIf("/main/api/v2/mining/rigs/stats/unpaid" not in TESTING_URIS, "skipping successful")
 	def test_unpaid_statistics(self):
 		unpaid_statistics = self.private_api.get_unpaid_statistics()
 		# print(unpaid_statistics)
@@ -1987,6 +2108,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(col)
 		elif len(unpaid_statistics["columns"]) > 0:
 			test(unpaid_statistics["columns"][0])
+		else: raise Exception("Empty return data for testing; missing unpaid rig statistics columns")
 		def test2(data):
 			self.assertIsInstance(data, list)
 			def test3(stat):
@@ -2001,6 +2123,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test2(data)
 		elif len(unpaid_statistics["data"]) > 0:
 			test2(unpaid_statistics["data"][0]) 
+		else: raise Exception("Empty return data for testing; missing unpaid rig statistics data")
 	# {
 	# 	columns : [
 	# 		string - Column definition of statistical streams
@@ -2014,8 +2137,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rigs/status2
 
+	@unittest.skipIf("/main/api/v2/mining/rigs/status2" not in TESTING_URIS, "skipping successful")
 	def test_status(self):
-		if not RIG_ID or not RIG_ACTION: return
+		check_test_paramters(["rig_id"])
 		status = self.private_api.update_status(RIG_ACTION, rig_id=RIG_ID)
 		# print(status)
 		self.assertIsInstance(status, dict)
@@ -2023,9 +2147,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 		self.assertIsInstance(status["successType"], str)
 		self.assertIsInstance(status["message"], str)
 
+	@unittest.skipIf("/main/api/v2/mining/rigs/status2" not in TESTING_URIS, "skipping successful")
 	def test_status2(self):
-		if not RIG_ACTION: return
-		status = self.private_api.update_status(RIG_ACTION, group_name="test")
+		if not RIG_ACTION or RIG_GROUP_NAME: return
+		status = self.private_api.update_status(RIG_ACTION, group_name=RIG_GROUP_NAME)
 		# print(status)
 		self.assertIsInstance(status, dict)
 		self.assertIsInstance(status["success"], bool)
@@ -2039,6 +2164,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/mining/rigs2
 
+	@unittest.skipIf("/main/api/v2/mining/rigs2" not in TESTING_URIS, "skipping successful")
 	def test_rigs(self):
 		rigs = self.private_api.get_rigs()
 		# print(rigs)
@@ -2056,8 +2182,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/pool
 
+	@unittest.skipIf("/main/api/v2/pool" not in TESTING_URIS, "skipping successful")
 	def test_create_pool(self):
-		if not POOL_NAME or not ALGORITHM or not POOL_HOST or not POOL_PORT or not POOL_USERNAME or not POOL_PASSWORD: return
+		check_test_paramters(["algorithm", "pool_host", "pool_name", "pool_port", "pool_password", "pool_username"])
 		pool = self.private_api.create_pool(POOL_NAME, ALGORITHM, pool_host=POOL_HOST, pool_port=POOL_PORT, username=POOL_USERNAME, password=POOL_PASSWORD)
 		# print(pool)
 		self.assertIsInstance(pool, dict)
@@ -2084,13 +2211,11 @@ class TestNiceHashPrivate(unittest.TestCase):
 	# 	inMoratorium : boolean
 	# }
 
-	# TODO
-	POOL_ID = None
-
 	# /main/api/v2/pool/{poolId}
 
+	@unittest.skipIf("/main/api/v2/pool/{poolId}" not in TESTING_URIS, "skipping successful")
 	def test_pool(self):
-		if not POOL_ID: return
+		check_test_paramters(["pool_id"])
 		pool = self.private_api.get_pool(POOL_ID)
 		# print(pool)
 		self.assertIsInstance(pool, dict)
@@ -2119,8 +2244,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/pool/{poolId}
 
+	@unittest.skipIf("/main/api/v2/pool/{poolId}" not in TESTING_URIS, "skipping successful")
 	def test_delete_pool(self):
-		if not POOL_ID: return
+		check_test_paramters(["pool_id"])
 		delete_pool = self.private_api.delete_pool(POOL_ID)
 		# print(delete_pool)
 		self.assertIsInstance(delete_pool, dict)
@@ -2135,6 +2261,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/pools
 
+	@unittest.skipIf("/main/api/v2/pools" not in TESTING_URIS, "skipping successful")
 	def test_my_pools(self):
 		my_pools = self.private_api.get_my_pools()
 		# print(my_pools)
@@ -2156,6 +2283,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(pool)
 		elif len(my_pools["list"]) > 0:
 			test(my_pools["list"][0])
+		else: raise Exception("Empty return data for testing; missing pools list")
 		try:
 			self.assertIsInstance(my_pools["pagination"], dict)
 			self.assert_is_number(my_pools["pagination"]["size"])
@@ -2186,9 +2314,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /main/api/v2/pools/verify
 
+	@unittest.skipIf("/main/api/v2/pools/verify" not in TESTING_URIS, "skipping successful")
 	def test_verify_pools(self):
-		if not MARKET or not ALGORITHM or not POOL_HOST or not POOL_PORT or not POOL_USERNAME or not POOL_PASSWORD: return
-		verify_pools = self.private_api.verify_pool(market=MARKET, algorithm=ALGORITHM, pool_host=POOL_HOST, pool_port=POOL_PORT, username=POOL_USERNAME, password=POOL_PASSWORD)
+		check_test_paramters(["algorithm", "market_long", "pool_host", "pool_port", "pool_password", "pool_username"])
+		verify_pools = self.private_api.verify_pool(market=MARKET_LONG, algorithm=ALGORITHM, pool_host=POOL_HOST, pool_port=POOL_PORT, username=POOL_USERNAME, password=POOL_PASSWORD)
 		# print(verify_pools)
 		self.assertIsInstance(verify_pools, dict)
 		self.assertIsInstance(verify_pools["success"], bool)
@@ -2205,6 +2334,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(log)
 		elif len(verify_pools["logs"]) > 0:
 			test(verify_pools["logs"][0])
+		else: raise Exception("Empty return data for testing; missing pools logs")
 		self.assert_is_number(verify_pools["highestDifficulty"])
 		self.assertIsInstance(verify_pools["highestDifficultyFormatted"], str)
 		self.assertIsInstance(verify_pools["difficultyCorrect"], bool)
@@ -2231,7 +2361,9 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /exchange/api/v2/info/cancelAllOrders
 
+	@unittest.skipIf("/exchange/api/v2/info/cancelAllOrders" not in TESTING_URIS, "skipping successful")
 	def test_canceled_orders(self):
+		check_test_paramters(["market_symbol", "side"])
 		canceled_orders = self.private_api.cancel_all_orders(market=MARKET_SYMBOL, side=SIDE)
 		# print(order)
 		self.assertIsInstance(canceled_orders, list)
@@ -2254,6 +2386,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(order)
 		elif len(canceled_orders) > 0:
 			test(canceled_orders[0])
+		else: raise Exception("Empty return data for testing; missing canceled orders")
 	# {
 	# 	market : string - Market symbol - ETHBTC, BTCUSDT, BCHBTC, ...
 	# 	orderId : string - Order Id
@@ -2272,6 +2405,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /exchange/api/v2/info/fees/status
 
+	@unittest.skipIf("/exchange/api/v2/info/fees/status" not in TESTING_URIS, "skipping successful")
 	def test_fee_status(self):
 		fee_status = self.private_api.get_fee_status()
 		# print(fee_status)
@@ -2313,9 +2447,11 @@ class TestNiceHashPrivate(unittest.TestCase):
 		self.assert_is_number(order["lastResponseTime"])
 		self.assertIsInstance(order["state"], str)
 
+	@unittest.skipIf("/exchange/api/v2/info/myOrder" not in TESTING_URIS, "skipping successful")
 	def test_my_order(self):
-		order = self.private_api.get_my_order(MARKET, ORDER_ID)
-		# print(order)
+		check_test_paramters(["order_id", "market_symbol"])
+		order = self.private_api.get_my_order(MARKET_SYMBOL, ORDER_ID)
+		print(order)
 		self.assert_is_order_response_response(order)
 		# self.assertIsInstance(order, dict)
 		# self.assertIsInstance(order["market"], str)
@@ -2350,11 +2486,15 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /exchange/api/v2/info/myOrders
 
+	@unittest.skipIf("/exchange/api/v2/info/myOrders" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
 	def test_my_orders(self):
-		if not MARKET: return
-		order = self.private_api.get_my_orders(MARKET)
-		# print(orders)
+		check_test_paramters(["market_symbol"])
+		orders = self.private_api.get_my_orders(MARKET_SYMBOL)
+		print(orders)
 		self.assertIsInstance(orders, list)
+		if len(orders) == 0:
+			raise Exception("Empty return data for testing; must create orders to check")
 		def test(order):
 			self.assert_is_order_response_response(order)
 		if TEST_LISTS:
@@ -2362,6 +2502,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(order)
 		elif len(orders) > 0:
 			test(orders[0])
+		else: raise Exception("Empty return data for testing; missing orders")
 	# [
 	# 	{
 	# 		market : string - Market symbol - ETHBTC, BTCUSDT, BCHBTC, ...
@@ -2394,11 +2535,15 @@ class TestNiceHashPrivate(unittest.TestCase):
 		self.assert_is_number(trade["isMaker"])
 		self.assertIsInstance(trade["orderId"], str)
 
+	@unittest.skipIf("/exchange/api/v2/info/myTrades" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
 	def test_my_trades(self):
-		if not MARKET: return
-		trades = self.private_api.get_my_trades(MARKET)
-		# print(trades)
+		check_test_paramters(["market_symbol"])
+		trades = self.private_api.get_my_trades(MARKET_SYMBOL)
+		print(trades)
 		self.assertIsInstance(trades, list)
+		if len(orders) == 0:
+			raise Exception("Empty return data for testing; must create trades to check")
 		def test(trade):
 			self.assert_is_trade_response(trade)
 		if TEST_LISTS:
@@ -2406,6 +2551,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(trade)
 		elif len(trades) > 0:
 			test(trades[0])
+		else: raise Exception("Empty return data for testing; missing trades")
 	# [
 	# 	{
 	# 		id : string - Trade id
@@ -2422,9 +2568,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /exchange/api/v2/info/orderTrades
 
+	@unittest.skipIf("/exchange/api/v2/info/orderTrades" not in TESTING_URIS, "skipping successful")
 	def test_trades_for_order(self):
-		if not MARKET or not ORDER_ID: return
-		order_trades = self.private_api.get_trades_for_order(MARKET, ORDER_ID)
+		check_test_paramters(["order_id", "market_symbol"])
+		order_trades = self.private_api.get_trades_for_order(MARKET_SYMBOL, ORDER_ID)
 		# print(order_trades)
 		self.assertIsInstance(order_trades, list)
 		def test(trade):
@@ -2434,6 +2581,7 @@ class TestNiceHashPrivate(unittest.TestCase):
 				test(trade)
 		elif len(order_trades) > 0:
 			test(order_trades[0])
+		else: raise Exception("Empty return data for testing; missing order trades")
 	# [
 	# 	{
 	# 		id : string - Trade id
@@ -2450,18 +2598,28 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /exchange/api/v2/order
 
+	@unittest.skipIf("/exchange/api/v2/order" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
+	# TODO
+	# requires testing behind VPN
 	def test_create_exchange_limit_order(self):
-		if not MARKET or not SIDE or not QUANTITY or not PRICE: return
+		check_test_paramters(["market_symbol", "price", "quantity", "side"])
 		exchange_limit_order = self.private_api.create_exchange_limit_order(MARKET_SYMBOL, SIDE, QUANTITY, PRICE)
 		# print(exchange_limit_order)
 		self.assert_is_order_response_response(exchange_limit_order)  
+
+	@unittest.skipIf("/exchange/api/v2/order" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
 	def test_create_exchange_buy_market_order(self):
-		if not MARKET or not QUANTITY or not SEC_QUANTITY: return
+		check_test_paramters(["market_symbol", "quantity", "sec_quantity"])
 		exchange_buy_market_order = self.private_api.create_exchange_buy_market_order(MARKET_SYMBOL, QUANTITY, SEC_QUANTITY)
 		# print(exchange_buy_market_order)
 		self.assert_is_order_response_response(exchange_buy_market_order)  
+
+	@unittest.skipIf("/exchange/api/v2/order" not in TESTING_URIS, "skipping successful")
+	@unittest.expectedFailure
 	def test_create_exchange_sell_market_order(self):
-		if not MARKET or not QUANTITY or not min_SEC_QUANTITY: return
+		check_test_paramters(["market_symbol", "quantity", "min_sec_quantity"])
 		exchange_sell_market_order = self.private_api.create_exchange_sell_market_order(MARKET_SYMBOL, QUANTITY, min_SEC_QUANTITY)
 		# print(exchange_sell_market_order)
 		self.assert_is_order_response_response(exchange_sell_market_order)  
@@ -2483,9 +2641,10 @@ class TestNiceHashPrivate(unittest.TestCase):
 
 	# /exchange/api/v2/order
 
+	@unittest.skipIf("/exchange/api/v2/order" not in TESTING_URIS, "skipping successful")
 	def test_cancel_exchange_order(self):
-		if not MARKET or not ORDER_ID: return
-		canceled_order = self.private_api.cancel_exchange_order(MARKET, ORDER_ID)
+		check_test_paramters(["market_symbol", "order_id"])
+		canceled_order = self.private_api.cancel_exchange_order(MARKET_SYMBOL, ORDER_ID)
 		# print(canceled_order)
 		self.assert_is_order_response_response(canceled_order)  
 	# {
@@ -2503,8 +2662,6 @@ class TestNiceHashPrivate(unittest.TestCase):
 	# 	lastResponseTime : integer - The response time of order's last response in microsecond since 1.1.1970
 	# 	state : string - State of the order - CREATED, RESERVED, RESERVED_ERROR, INSERTED, INSERTED_ERROR, RELEASED, RELEASED_ERROR, PARTIAL, ENTERED, FULL, PROCESSED_ERROR, CANCEL_REQUEST, CANCELLED, CANCELLED_ERROR, REJECTED
 	# }
-
-
 
 ############################################################################################
 
