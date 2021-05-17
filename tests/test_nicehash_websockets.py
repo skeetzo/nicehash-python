@@ -1,24 +1,64 @@
 import unittest
 import os
-# os.environ['ENV'] = "test"
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv())
+import time
+from dotenv import load_dotenv
+load_dotenv()
+#
+from python import nicehash
 
-HOST = os.environ.get("TEST_HOST")
+HOST = os.environ.get("TEST_WEBSOCKETS_HOST")
 ORGANIZATION_ID = os.environ.get("TEST_ORGANIZATION_ID")
 KEY = os.environ.get("TEST_KEY")
 SECRET = os.environ.get("TEST_SECRET")
 
-	# Market symbol ["ETHBTC", "BTCUSDT", "BCHBTC", "..."] : {
+if not HOST or not ORGANIZATION_ID or not KEY or not SECRET:
+	raise Exception("missing environment keys")
+	
+###
+# Parameters for testing
+###
+ACTIVITY_TYPES = nicehash.ACTIVITY_TYPES[0]
+ADDRESS = None
+ALGORITHM = nicehash.ALGORITHMS[0]
+CURRENCY = "TBTC"
+MARKET = nicehash.MARKETS[0]
+RESOLUTION = nicehash.RESOLUTIONS[0]
+MARKET_SYMBOLS = ["TETHTBTC", "TBTCTUSDT", "TBCHTBTC"]
+MARKET_SYMBOL = MARKET_SYMBOLS[1]
+OP = nicehash.OPS[0]
+# ORDER_RELATION = nicehash.ORDER_RELATION[0]
+SORT_PARAMETER = nicehash.SORT_PARAMETERS[0]
+SORT_DIRECTION = nicehash.SORT_DIRECTIONS[0]
+SORT_OPTION = nicehash.SORT_OPTIONS[0]
+SIDE = nicehash.SIDES[0]
+STATUS = nicehash.STATUSES[0]
+# TRANSACTION_TYPE = nicehash.TX_TYPES[0]
+# WALLET_TYPE = nicehash.WALLET_TYPES[0]
+#
+FROM_S = int(time.time()) - 300
+TO_S = FROM_S
+TIMESTAMP = int(time.time())
+###
 
-MARKET_SYMBOLS
+PRICE = None
+MESSAGE_ID = None
 
-TEST_LISTS = False
+QUANTITY = None
+QUANTITY_QUOTE = None
+
 VERBOSE = False
+TEST_LISTS = False
+# TODO
+# add loop for testing each market
+HOST = HOST.replace("$MARKET", MARKET_SYMBOL.lower())
+# HOST = HOST.replace("$MARKET", "btcusd")
+TEST_MARKETS = False
 
-from python import nicehash
 
-class TestNiceHashWebsockets(unittest.TestCase):
+from unittest import IsolatedAsyncioTestCase
+
+
+class TestNiceHashWebsockets(IsolatedAsyncioTestCase):
 
 	def setUp(self):
 		self.websockets_api = nicehash.websockets_api(HOST, ORGANIZATION_ID, KEY, SECRET, verbose=VERBOSE)
@@ -88,8 +128,7 @@ class TestNiceHashWebsockets(unittest.TestCase):
 	#     ]
 	# }
 	def test_unsubscribe_candlestick_stream(self):
-		if not RESOLUTION: raise Exception("Missing test value: resolution")
-		unsub_candlestick_stream = self.websockets_api.unsubscribe_candlestick_stream(RESOLUTION)
+		unsub_candlestick_stream = self.websockets_api.unsubscribe_candlestick_stream()
 		print(unsub_candlestick_stream)
 		self.assertEqual(unsub_candlestick_stream, dict)
 
@@ -147,34 +186,43 @@ class TestNiceHashWebsockets(unittest.TestCase):
 	# }
 
 	def test_unsubscribe_trade_stream(self):
-		unsub_trade_stream = self.websockets_api.unsubscribe_trade_stream(RESOLUTION)
+		unsub_trade_stream = self.websockets_api.unsubscribe_trade_stream()
 		print(unsub_trade_stream)
 		self.assertEqual(unsub_trade_stream, dict)
 
-	def test_cancel_all_orders(self):
-		canceled_orders = self.websockets_api.cancel_all_orders()
-		print(canceled_orders)
-		self.assertIsInstance(canceled_orders, dict)
-		self.assertIsInstance(canceled_orders.m, str)
-		self.assertIsInstance(canceled_orders.i, str)
-		self.assertIsInstance(canceled_orders.o, list)
-		def test(o):
-			self.assertIsInstance(o.i, str)
-			self.assertIsInstance(o.p, float)
-			self.assertIsInstance(o.oq, float)
-			self.assertIsInstance(o.osq, float)
-			self.assertIsInstance(o.eq, float)
-			self.assertIsInstance(o.esq, float)
-			self.assertIsInstance(o.t, str)
-			self.assertIsInstance(o.d, str)
-			self.assertIsInstance(o.sts, int)
-			self.assertIsInstance(o.uts, int)
-			self.assertIsInstance(o.s, str)
-		if TEST_LISTS:
-			for o in canceled_orders.o:
-				test(o)
-		elif len(canceled_orders.o) > 0:
-			test(canceled_orders.o[0])
+	async def test_cancel_all_orders(self):
+		# canceled_orders = await self.websockets_api.cancel_all_orders()
+		# print(canceled_orders)
+
+		def test(message):
+			print(message)
+			self.assertIsInstance(message, dict)
+			self.assertIsInstance(message.m, str)
+			self.assertIsInstance(message.i, str)
+			self.assertIsInstance(message.o, list)
+			def test(o):
+				self.assertIsInstance(o.i, str)
+				self.assertIsInstance(o.p, float)
+				self.assertIsInstance(o.oq, float)
+				self.assertIsInstance(o.osq, float)
+				self.assertIsInstance(o.eq, float)
+				self.assertIsInstance(o.esq, float)
+				self.assertIsInstance(o.t, str)
+				self.assertIsInstance(o.d, str)
+				self.assertIsInstance(o.sts, int)
+				self.assertIsInstance(o.uts, int)
+				self.assertIsInstance(o.s, str)
+			if TEST_LISTS:
+				for o in message.o:
+					test(o)
+			elif len(message.o) > 0:
+				test(message.o[0])
+
+		websocket = await self.websockets_api.cancel_all_orders()
+
+		websocket.on_message = test
+
+
 	# {
 	#     m : string - Method is always o.ca.all
 	#     i : string - Message id, the same as in a request
@@ -352,16 +400,16 @@ class TestNiceHashWebsockets(unittest.TestCase):
 		if TEST_LISTS:
 			for b in sub_order_book_stream.b:
 				test(b)
-			elif len(sub_order_book_stream.b) > 0:
-				test(sub_order_book_stream.b[0])
+		elif len(sub_order_book_stream.b) > 0:
+			test(sub_order_book_stream.b[0])
 		def test2(s):
 			self.assertIsInstance(s.p, float)
 			self.assertIsInstance(s.q, float)
 		if TEST_LISTS:
 			for s in sub_order_book_stream.s:
 				test2(s)
-			elif len(sub_order_book_stream.s) > 0:
-				test2(sub_order_book_stream.s[0])
+		elif len(sub_order_book_stream.s) > 0:
+			test2(sub_order_book_stream.s[0])
 		# TODO
 		# add updated responses
 	# {

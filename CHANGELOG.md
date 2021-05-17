@@ -8,13 +8,15 @@
 	- package fix
 	- public & private client tests mostly OK
 	- i totally know semantic versioning
+	**0.1.2 : 5/16/2021**
+	- start websocket tests
 
 
 ## Dev Notes
 
 Currently integrating with the (NiceHash REST API)[https://www.nicehash.com/docs/rest]
 
-Some 
+websockets require ssl?
 
 ### Bugs:
 

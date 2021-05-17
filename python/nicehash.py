@@ -9,6 +9,12 @@ import optparse
 import sys
 import re
 
+import asyncio
+import pathlib
+import ssl
+import websockets
+
+
 # OPTIONS
 ACTIVITY_TYPES = [ "DEPOSIT", "WITHDRAWAL", "HASHPOWER", "MINING", "EXCHANGE", "UNPAID_MINING", "OTHER" ]
 ALGORITHMS = [ "SCRYPT", "SHA256", "SCRYPTNF", "X11", "X13", "KECCAK", "X15", "NIST5", "NEOSCRYPT", "LYRA2RE", "WHIRLPOOLX", "QUBIT", "QUARK", "AXIOM", "LYRA2REV2", "SCRYPTJANENF16", "BLAKE256R8", "BLAKE256R14", "BLAKE256R8VNL", "HODL", "DAGGERHASHIMOTO", "DECRED", "CRYPTONIGHT", "LBRY", "EQUIHASH", "PASCAL", "X11GOST", "SIA", "BLAKE2S", "SKUNK", "CRYPTONIGHTV7", "CRYPTONIGHTHEAVY", "LYRA2Z", "X16R", "CRYPTONIGHTV8", "SHA256ASICBOOST", "ZHASH", "BEAM", "GRINCUCKAROO29", "GRINCUCKATOO31", "LYRA2REV3", "CRYPTONIGHTR", "CUCKOOCYCLE", "GRINCUCKAROOD29", "BEAMV2", "X16RV2", "RANDOMXMONERO", "EAGLESONG", "CUCKAROOM", "GRINCUCKATOO32", "HANDSHAKE", "KAWPOW", "CUCKAROO29BFC", "BEAMV3", "CUCKAROOZ29", "OCTOPUS" ]
@@ -1093,14 +1099,32 @@ class websockets_api(public_api):
         self.organisation_id = organisation_id
         self.host = host
         self.verbose = verbose
-
-
-        self.session = requests.Session()
+        self.websocket = None
 
     def close(self):
-        self.session.close()
+        self.websocket.close()
 
-    def request(self, method, path, query, body):
+
+# don't require permissions:
+# candlestick
+# order book stream
+# trade stream
+
+    def on_error(self, ws, e):
+        print(e)
+
+    def on_message(self, ws, message):
+        print(message)
+
+    def on_close(self, ws):
+        print("websocket closed")
+
+    def on_open(self, ws):
+        # print("open: ".format(e))
+        pass
+
+
+    async def request(self, body, on_message=None):
 
         xtime = self.get_epoch_ms_from_now()
         xnonce = str(uuid.uuid4())
@@ -1115,16 +1139,11 @@ class websockets_api(public_api):
         message += bytearray(self.organisation_id, 'utf-8')
         message += bytearray('\x00', 'utf-8')
         message += bytearray('\x00', 'utf-8')
-        message += bytearray(method, 'utf-8')
+        message += bytearray("wss", 'utf-8')
         message += bytearray('\x00', 'utf-8')
-        message += bytearray(path, 'utf-8')
+        message += bytearray("my", 'utf-8')
         message += bytearray('\x00', 'utf-8')
-        message += bytearray(query, 'utf-8')
-
-        if body:
-            body_json = json.dumps(body)
-            message += bytearray('\x00', 'utf-8')
-            message += bytearray(body_json, 'utf-8')
+        # message += bytearray(query, 'utf-8')
 
         digest = hmac.new(bytearray(self.secret, 'utf-8'), message, sha256).hexdigest()
         xauth = self.key + ":" + digest
@@ -1132,33 +1151,53 @@ class websockets_api(public_api):
         headers = {
             'X-Time': str(xtime),
             'X-Nonce': xnonce,
-            'X-Auth': xauth,
-            'Content-Type': 'application/json',
             'X-Organization-Id': self.organisation_id,
-            'X-Request-Id': str(uuid.uuid4())
+            'X-Request-Id': str(uuid.uuid4()),
+            'X-Auth': xauth,
+            'Content-Type': 'application/json'
         }
 
-        s = requests.Session()
-        s.headers = headers
+        import websocket
 
-        url = self.host + path
-        if query:
-            url += '?' + query
+        websocket.enableTrace(True)
 
-        if self.verbose:
-            print(method, url)
+        print(self.host)
 
-        if body:
-            response = s.request(method, url, data=body_json)
-        else:
-            response = s.request(method, url)
 
-        if response.status_code == 200:
-            return response.json()
-        elif response.content:
-            raise Exception(str(response.status_code) + ": " + response.reason + ": " + str(response.content))
-        else:
-            raise Exception(str(response.status_code) + ": " + response.reason)
+        # ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        # localhost_pem = pathlib.Path(__file__).with_name("localhost.pem")
+        # ssl_context.load_verify_locations(localhost_pem)
+
+        # websocket.setdefaulttimeout(5)
+
+        if not on_message:
+            on_message = self.on_message
+
+        self.websocket = websocket.WebSocketApp(self.host,
+                            on_open = self.on_open,
+                            on_message = on_message,
+                            on_error = self.on_error,
+                            on_close = self.on_close, 
+                            header = headers
+                        )
+
+        import ssl
+        # self.websocket.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+        
+        self.websocket.run_forever(sslopt={"check_hostname": False})
+
+        return self.websocket
+
+
+        # while(True):
+        #     try:
+        #         message_str = await asyncio.wait_for(websocket.recv(), timeout=self._timeout)
+        #         if message_str[9:18] != "heartbeat":
+        #             # await self.queue.put(message_str)
+        #             self.queue.put_nowait(message_str)
+        #     except Exception as e:
+        #         raise Exception("no data in {} seconds, killing connection".format(self._timeout))
+
 
     # WSS
 
@@ -1175,7 +1214,7 @@ class websockets_api(public_api):
             "m": "subscribe.candlesticks",
             "r": r
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Unsubscribe Candlestick Stream
@@ -1185,7 +1224,7 @@ class websockets_api(public_api):
         data = {
             "m": "unsubscribe.candlesticks"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # MyTrade stream
     # ws
@@ -1196,7 +1235,7 @@ class websockets_api(public_api):
         data = {
             "m": "subscribe.mytrades"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Unsubscribe My Trade Stream
@@ -1206,7 +1245,7 @@ class websockets_api(public_api):
         data = {
             "m": "unsubscribe.mytrades"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # Order Manipulation
 
@@ -1222,7 +1261,7 @@ class websockets_api(public_api):
             "i": message_id,
             "s": side
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Cancel Order
@@ -1236,7 +1275,7 @@ class websockets_api(public_api):
             "i": message_id,
             "oid": order_id
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Create Order
@@ -1263,7 +1302,7 @@ class websockets_api(public_api):
             "qt": quantity,
             "pr": price
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     def create_buy_market_order(self, message_id, quantityQuote, quantityBase=""):
         data = {
@@ -1274,7 +1313,7 @@ class websockets_api(public_api):
             "sqt": quantityQuote,
             "mqt": quantityBase
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     def create_sell_market_order(self, message_id, quantity, minSecQuantity=""):
         data = {
@@ -1285,7 +1324,7 @@ class websockets_api(public_api):
             "qt": quantity,
             "msqt": minSecQuantity
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Subscribe Order Stream
@@ -1295,7 +1334,7 @@ class websockets_api(public_api):
         data = {
             "m": "subscribe.orders"
         }
-        return self.request('GET', '', '', data)        
+        return self.request(data)        
 
     # ws
     # Unsubscribe Order Stream
@@ -1305,7 +1344,7 @@ class websockets_api(public_api):
         data = {
             "m": "unsubscribe.orders"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # Orderbook Stream
 
@@ -1317,7 +1356,7 @@ class websockets_api(public_api):
         data = {
             "m": "subscribe.orderbook"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Unsubscribe Order Book Stream
@@ -1327,7 +1366,7 @@ class websockets_api(public_api):
         data = {
             "m": "subscribe.orderbook"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # Trade Stream
 
@@ -1339,7 +1378,7 @@ class websockets_api(public_api):
         data = {
             "m": "subscribe.trades"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
     # ws
     # Unsubscribe Trade Stream
@@ -1349,7 +1388,7 @@ class websockets_api(public_api):
         data = {
             "m": "unsubscribe.trades"
         }
-        return self.request('GET', '', '', data)
+        return self.request(data)
 
 def main():
     parser = optparse.OptionParser()
@@ -1382,3 +1421,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

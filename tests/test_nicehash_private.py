@@ -11,6 +11,10 @@ HOST = os.environ.get("TEST_HOST")
 ORGANIZATION_ID = os.environ.get("TEST_ORGANIZATION_ID")
 KEY = os.environ.get("TEST_KEY")
 SECRET = os.environ.get("TEST_SECRET")
+
+if not HOST or not ORGANIZATION_ID or not KEY or not SECRET:
+	raise Exception("missing environment keys")
+	
 ###
 # Parameters for testing
 ###

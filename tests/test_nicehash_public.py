@@ -15,6 +15,10 @@ KEY = os.environ.get("TEST_KEY")
 # KEY = os.environ.get("KEY")
 SECRET = os.environ.get("TEST_SECRET")
 # SECRET = os.environ.get("SECRET")
+
+if not HOST or not ORGANIZATION_ID or not KEY or not SECRET:
+	raise Exception("missing environment keys")
+
 ###
 # Parameters for testing
 ###
@@ -1642,7 +1646,7 @@ class TestNiceHashPublic(unittest.TestCase):
 			def test(sell):
 				self.assertIsInstance(sell, list)
 				def test2(bid):
-					self.assertIsInstance(bid, int)
+					self.assert_is_number(bid)
 				if TEST_LISTS:
 					for bid in sell:
 						test2(bid)
@@ -1660,7 +1664,7 @@ class TestNiceHashPublic(unittest.TestCase):
 			def test(buy):
 				self.assertIsInstance(buy, list)
 				def test2(ask):
-					self.assertIsInstance(ask, int)
+					self.assert_is_number(ask)
 				if TEST_LISTS:
 					for ask in buy:
 						test2(ask)
