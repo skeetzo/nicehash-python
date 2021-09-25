@@ -581,7 +581,7 @@ class TestNiceHashPublic(unittest.TestCase):
 			if TEST_LISTS:
 				for prof in hashpower_summaries["summaries"][key]["profs"]:
 					test2(prof)
-			else:
+			elif len(hashpower_summaries["summaries"][key]["profs"]) > 0:
 				test2(hashpower_summaries["summaries"][key]["profs"][0])
 			self.assert_is_number(hashpower_summaries["summaries"][key]["acceptedPoolSpeed"])
 			self.assert_is_number(hashpower_summaries["summaries"][key]["acceptedRigSpeed"])
@@ -607,7 +607,7 @@ class TestNiceHashPublic(unittest.TestCase):
 			if TEST_LISTS:
 				for prof in hashpower_summaries["summaries"][key]["profs"]:
 					test2(prof)
-			else:
+			elif len(hashpower_summaries["summaries"][key]["profs"]) > 0:
 				test2(hashpower_summaries["summaries"][key]["profs"][0])
 			self.assert_is_number(hashpower_summaries["summaries"][key]["acceptedPoolSpeed"])
 			self.assert_is_number(hashpower_summaries["summaries"][key]["acceptedRigSpeed"])

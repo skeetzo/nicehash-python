@@ -1,7 +1,2 @@
-.idea
-javascript/node_modules
 .env
-bin/
-notes/
 venv/
-bash/run-test.sh

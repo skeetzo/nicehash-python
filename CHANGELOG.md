@@ -10,6 +10,13 @@
 	- i totally know semantic versioning
 	**0.1.2 : 5/16/2021**
 	- start websocket tests
+	**0.1.3 : 9/25/2021**
+	- minor fixes
+	- .gitignore update to save notes, bin
+
+## TODO
+
+ - continue testing
 
 
 ## Dev Notes

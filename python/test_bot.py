@@ -1,42 +1,48 @@
 import os
+import nicehash
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-host = os.environ.get("HOST_TEST")
-organisation_id = os.environ.get("ORGANIZATION_ID")
-key = os.environ.get("KEY")
-secret = os.environ.get("SECRET")
+HOST = os.environ.get("TEST_HOST")
+organisation_id = os.environ.get("TEST_ORGANIZATION_ID")
+key = os.environ.get("TEST_KEY")
+secret = os.environ.get("TEST_SECRET")
+
+address = os.environ.get("TEST_address")
+algorithm = nicehash.ALGORITHMS[0]
+
 
 ############################################
 # PUBLIC FUNCTIONS
 
+public_api = nicehash.public_api(host, verbose=True)
 
 # External miner
 
 # /main/api/v2/mining/external/{btcAddress}/rigs/activeWorkers
 
-active_workers = public_api.get_active_workers(ADDRESS)
+active_workers = public_api.get_active_workers(address)
 print(active_workers)
 
 # /main/api/v2/mining/external/{btcAddress}/rigs/stats/algo
 
-algo_statistics = public_api.get_algo_statistics(ADDRESS, ALGORITHM)
+algo_statistics = public_api.get_algo_statistics(address, algorithm)
 print(algo_statistics)
 
 # /main/api/v2/mining/external/{btcAddress}/rigs/stats/unpaid
 
-unpaid_statistics = public_api.get_unpaid_statistics(ADDRESS)
+unpaid_statistics = public_api.get_unpaid_statistics(address)
 print(unpaid_statistics)
 
 # /main/api/v2/mining/external/{btcAddress}/rigs/withdrawals
 
-withdrawals = public_api.get_withdrawals(ADDRESS)
+withdrawals = public_api.get_withdrawals(address)
 print(withdrawals)
 
 # /main/api/v2/mining/external/{btcAddress}/rigs2
 
-rig_statuses = public_api.get_rig_statuses(ADDRESS)
+rig_statuses = public_api.get_rig_statuses(address)
 print(rig_statuses)
 
 
@@ -44,7 +50,7 @@ print(rig_statuses)
 
 # /main/api/v2/hashpower/orderBook
 
-hashpower_orderbook = public_api.get_hashpower_orderbook(ALGORITHM)
+hashpower_orderbook = public_api.get_hashpower_orderbook(algorithm)
 print(hashpower_orderbook)
 
 # /main/api/v2/hashpower/orders/fixedPrice
@@ -59,12 +65,12 @@ print(hashpower_summaries)
 
 # /main/api/v2/hashpower/orders/summary
 
-hashpower_orders_summary = public_api.get_hashpower_orders_summary(ALGORITHM, MARKET)
+hashpower_orders_summary = public_api.get_hashpower_orders_summary(algorithm, MARKET)
 print(hashpower_orders_summary)
 
 # /main/api/v2/public/algo/history
 
-algo_history = public_api.get_algo_history(ALGORITHM)
+algo_history = public_api.get_algo_history(algorithm)
 print(algo_history)
 
 # /main/api/v2/public/buy/info
@@ -194,104 +200,96 @@ print(orderbook)
 
 
 
-
-
-
-
-
-
-
-
-
 ############################################
 # PRIVATE FUNCTIONS
 
+private_api = nicehash.private_api(host, organisation_id, key, secret, verbose=True)
 
 # Accounting
 
 # /main/api/v2/accounting/account2/{currency}
 
-accounts_for_currency = public_api.get_accounts_for_currency(CURRENCY)
+accounts_for_currency = private_api.get_accounts_for_currency(CURRENCY)
 print(accounts_for_currency)
 
 # /main/api/v2/accounting/accounts2
 
-accounts = public_api.get_accounts()
+accounts = private_api.get_accounts()
 print(accounts)
 
 # /main/api/v2/accounting/activity/{currency}
 
-account_activity = public_api.get_account_activity(CURRENCY)
+account_activity = private_api.get_account_activity(CURRENCY)
 print(account_activity)
 
 # /main/api/v2/accounting/depositAddresses
 
-deposit_addresses = public_api.get_deposit_addresses()
+deposit_addresses = private_api.get_deposit_addresses()
 print(deposit_addresses)
 
 # /main/api/v2/accounting/deposits/{currency}
 
-deposits_for_currency = public_api.get_deposits_for_currency(CURRENCY)
+deposits_for_currency = private_api.get_deposits_for_currency(CURRENCY)
 print(deposits_for_currency)
 
 # /main/api/v2/accounting/deposits2/{currency}/{id}
 
-deposits_for_currency_by_id = public_api.get_deposits_for_currency_by_id(CURRENCY, ID)
+deposits_for_currency_by_id = private_api.get_deposits_for_currency_by_id(CURRENCY, ID)
 print(deposits_for_currency_by_id)
 
 # /main/api/v2/accounting/exchange/{id}/trades
 
-order_transactions_by_id = public_api.get_order_transactions_by_id(ID, MARKET)
+order_transactions_by_id = private_api.get_order_transactions_by_id(ID, MARKET)
 print(order_transactions_by_id)
 
 # /main/api/v2/accounting/hashpower/{id}/transactions
 
-hashpower_order_transactions_by_id = public_api.get_hashpower_order_transactions_by_id(ID)
+hashpower_order_transactions_by_id = private_api.get_hashpower_order_transactions_by_id(ID)
 print(hashpower_order_transactions_by_id)
 
 # /main/api/v2/accounting/hashpowerEarnings/{currency}
 
-hashpower_earnings_for_currency = public_api.get_hashpower_earnings_for_currency(CURRENCY)
+hashpower_earnings_for_currency = private_api.get_hashpower_earnings_for_currency(CURRENCY)
 print(hashpower_earnings_for_currency)
 
 # /main/api/v2/accounting/transaction/{currency}/{transactionId}
 
-transaction_for_currency_by_id = public_api.get_transaction_for_currency_by_id(CURRENCY, ID)
+transaction_for_currency_by_id = private_api.get_transaction_for_currency_by_id(CURRENCY, ID)
 print(transaction_for_currency_by_id)
 
 # /main/api/v2/accounting/transactions/{currency}
 
-transactions_for_currency = public_api.get_transactions_for_currency(CURRENCY)
+transactions_for_currency = private_api.get_transactions_for_currency(CURRENCY)
 print(transactions_for_currency)
 
 # /main/api/v2/accounting/withdrawal
 
-withdrawal = public_api.withdraw_request(CURRENCY, WITHDRAWAL_AMOUNT, WHITELISTED_WITHDRAWAL_ADDRESS_ID)
+withdrawal = private_api.withdraw_request(CURRENCY, WITHDRAWAL_AMOUNT, WHITELISTED_WITHDRAWAL_address_ID)
 print(withdrawal)
 
 # /main/api/v2/accounting/withdrawal/{currency}/{id}
 
-delete_withdrawal = public_api.delete_withdrawal(WITHDRAWAL_ID)
+delete_withdrawal = private_api.delete_withdrawal(WITHDRAWAL_ID)
 print(delete_withdrawal)
 
 # /main/api/v2/accounting/withdrawal2/{currency}/{id}
 
-withdrawal_for_currency_by_id = public_api.get_withdrawal_for_currency_by_id(CURRENCY, WITHDRAWAL_ID)
+withdrawal_for_currency_by_id = private_api.get_withdrawal_for_currency_by_id(CURRENCY, WITHDRAWAL_ID)
 print(withdrawal_for_currency_by_id)
 
 # /main/api/v2/accounting/withdrawalAddress/{id}
 
-withdrawal_address_by_id = public_api.get_withdrawal_address_by_id(WITHDRAWAL_ID)
+withdrawal_address_by_id = private_api.get_withdrawal_address_by_id(WITHDRAWAL_ID)
 print(withdrawal_address_by_id)
 
 # /main/api/v2/accounting/withdrawalAddresses
 
-withdrawal_addresses = public_api.get_withdrawal_addresses(CURRENCY)
+withdrawal_addresses = private_api.get_withdrawal_addresses(CURRENCY)
 print(withdrawal_addresses)
 
 # /main/api/v2/accounting/withdrawals/{currency}
 
-withdrawals_for_currency = public_api.get_withdrawals_for_currency(CURRENCY, STATUSES, OP, TIMESTAMP, PAGE, SIZE)
+withdrawals_for_currency = private_api.get_withdrawals_for_currency(CURRENCY, STATUSES, OP, TIMESTAMP, PAGE, SIZE)
 print(withdrawals_for_currency)
 
 
@@ -299,17 +297,17 @@ print(withdrawals_for_currency)
 
 # /main/api/v2/hashpower/myOrders
 
-active_orders = private_api.get_my_active_orders(ALGORITHM, MARKET, LIMIT)
+active_orders = private_api.get_my_active_orders(algorithm, MARKET, LIMIT)
 print(active_orders)
 # TODO
 ORDER_ID = None
 
 # /main/api/v2/hashpower/order
 
-standard_hashpower_order = private_api.create_standard_hashpower_order(MARKET, ALGORITHM, PRICE, LIMIT, AMOUNT, POOL_ID)
+standard_hashpower_order = private_api.create_standard_hashpower_order(MARKET, algorithm, PRICE, LIMIT, AMOUNT, POOL_ID)
 print(standard_hashpower_order)
 
-fixed_hashpower_order = private_api.create_fixed_hashpower_order(MARKET, ALGORITHM, PRICE, LIMIT, AMOUNT, POOL_ID)
+fixed_hashpower_order = private_api.create_fixed_hashpower_order(MARKET, algorithm, PRICE, LIMIT, AMOUNT, POOL_ID)
 print(fixed_hashpower_order)
 
 # /main/api/v2/hashpower/order/{id}
@@ -334,16 +332,16 @@ print(order_statistics)
 
 # /main/api/v2/hashpower/order/{id}/updatePriceAndLimit
 
-set_order = private_api.set_price_hashpower_order(ORDER_ID, PRICE, ALGORITHM)
+set_order = private_api.set_price_hashpower_order(ORDER_ID, PRICE, algorithm)
 print(set_order)
-set_order = private_api.set_limit_hashpower_order(ORDER_ID, LIMIT, ALGORITHM)
+set_order = private_api.set_limit_hashpower_order(ORDER_ID, LIMIT, algorithm)
 print(set_order)
-set_order = private_api.set_price_and_limit_hashpower_order(ORDER_ID, PRICE, LIMIT, ALGORITHM)
+set_order = private_api.set_price_and_limit_hashpower_order(ORDER_ID, PRICE, LIMIT, algorithm)
 print(set_order)
 
 # /main/api/v2/hashpower/orders/calculateEstimateDuration
 
-order_duration = private_api.estimate_order_duration(ALGORITHM, order_type=ORDER_TYPE, price=PRICE, limit=LIMIT, amount=AMOUNT)
+order_duration = private_api.estimate_order_duration(algorithm, order_type=ORDER_TYPE, price=PRICE, limit=LIMIT, amount=AMOUNT)
 print(order_duration)
 
 
@@ -413,7 +411,7 @@ print(rigs)
 
 # /main/api/v2/pool
 
-pool = private_api.create_pool(POOL_NAME, ALGORITHM, pool_host=POOL_HOST, pool_port=POOL_PORT, username=POOL_USERNAME, password=POOL_PASSWORD)
+pool = private_api.create_pool(POOL_NAME, algorithm, pool_host=POOL_HOST, pool_port=POOL_PORT, username=POOL_USERNAME, password=POOL_PASSWORD)
 print(pool)
 # TODO
 POOL_ID = None
@@ -435,7 +433,7 @@ print(my_pools)
 
 # /main/api/v2/pools/verify
 
-verify_pools = private_api.verify_pool(market=MARKET, algorithm=ALGORITHM, pool_host=POOL_HOST, pool_port=POOL_PORT, username=USERNAME, password=PASSWORD)
+verify_pools = private_api.verify_pool(market=MARKET, algorithm=algorithm, pool_host=POOL_HOST, pool_port=POOL_PORT, username=USERNAME, password=PASSWORD)
 print(verify_pools)
 
 
@@ -491,7 +489,27 @@ print(canceled_order)
 
 
 
-# websockets
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Websockets
 
 sub_candlestick_stream = private_api.subscribe_candlestick_stream(RESOLUTION)
 print(sub_candlestick_stream)
@@ -540,4 +558,3 @@ print(sub_trade_stream)
 
 unsub_trade_stream = private_api.unsubscribe_order_stream()
 print(unsub_trade_stream)
-

@@ -81,7 +81,4 @@ Result:
 Example usage:
 
     python nicehash.py -b https://api2.nicehash.com -o ca5622bd-bc32-451b-90a4-e9ae1088bade -k 85512ceb-4f37-426e-9fb4-929af9134ed1 -s 11260065-37f9-4875-bbdd-52a59ce7775de2c0596c-5c87-4739-bb60-b3f547612aed -m GET -p /main/api/v2/accounting/accounts/
-    
-    
-    
 
