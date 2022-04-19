@@ -18,6 +18,8 @@
 
  - continue testing
 
+ - write a behavior to catch gaps / price discrepencies to capitalize on
+
 
 ## Dev Notes
 
